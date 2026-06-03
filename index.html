@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>제주트래블 — 현지인이 만든 AI 여행 가이드</title>
+<meta property="og:type" content="website">
+<meta property="og:title" content="제주트래블 — 현지인이 만든 AI 여행 가이드">
+<meta property="og:description" content="AI가 짜주는 나만의 제주 하루 일정. 시계방향 4구역 최단 동선 추천">
+<meta property="og:url" content="https://jeju-travel.vercel.app">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root{
+  --p:#2D6A4F;--pd:#1A3A2A;--pale:#D8F3DC;
+  --pur:#534AB7;--purl:#EEEDFE;
+  --blu:#185FA5;--blul:#E6F1FB;
+  --bg:#F4F7F5;--card:#FFFFFF;
+  --t:#1A2B1F;--ts:#5A7A65;--tm:#9AB5A0;
+  --bdr:rgba(0,0,0,0.07);
+  --sh:0 2px 16px rgba(26,58,42,0.10);
+  --r:16px;--rs:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:#1A3A2A;overflow:hidden;font-family:'Noto Sans KR',sans-serif}
+body{display:flex;justify-content:center;align-items:center}
+.phone{position:relative;width:390px;height:844px;background:var(--bg);border-radius:50px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.5),0 0 0 10px #111,0 0 0 11px #333}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:126px;height:37px;background:#111;border-radius:0 0 22px 22px;z-index:200}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg)}
+.screen.on{display:flex}
+.sbar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 8px;flex-shrink:0;font-size:15px;font-weight:600}
+.sl{color:white}.sd{color:var(--t);background:var(--bg)}
+.sbi{display:flex;gap:5px;align-items:center}.sbi i{font-size:14px}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{display:none}
+.bnav{height:82px;background:var(--card);border-top:1px solid var(--bdr);display:flex;align-items:flex-start;padding-top:10px;flex-shrink:0}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:.35;transition:.2s}
+.ni.on{opacity:1}.ni i{font-size:24px;color:var(--p)}.ni span{font-size:10px;font-weight:600;color:var(--p)}
+
+/* HOME */
+.home-hero{flex-shrink:0;height:300px;background:linear-gradient(155deg,#0D2B1A 0%,#1A5C3A 45%,#2D8C60 100%);position:relative;overflow:hidden}
+.hero-content{position:absolute;inset:0;padding:56px 24px 24px;z-index:2}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);font-size:11px;font-weight:500;padding:5px 12px;border-radius:20px;margin-bottom:14px}
+.hero-h1{font-size:30px;font-weight:900;color:white;line-height:1.2;letter-spacing:-.5px}
+.hero-sub{font-size:13px;color:rgba(255,255,255,0.65);margin-top:8px;font-weight:300}
+.ai-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#534AB7,#2D6A4F);color:white;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;margin-top:10px}
+.hero-wave{position:absolute;bottom:0;left:0;right:0}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.mc{background:var(--card);border-radius:var(--r);padding:18px 14px;cursor:pointer;box-shadow:var(--sh);border:1.5px solid transparent;transition:.15s}
+.mc:active{transform:scale(.97)}.mc.hi{border-color:#B7E4C7}
+.mc-ico{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:22px}
+.ig{background:var(--pale);color:var(--p)}.ib{background:var(--blul);color:var(--blu)}
+.mc-t{font-size:13px;font-weight:700;color:var(--t)}.mc-s{font-size:11px;color:var(--ts);margin-top:3px;line-height:1.4}
+.sec-hdr{padding:4px 16px 8px}.sec-t{font-size:15px;font-weight:700;color:var(--t)}
+.qstats{display:flex;gap:8px;padding:0 16px 16px}
+.qs{flex:1;background:var(--card);border-radius:var(--rs);padding:10px 6px;text-align:center;box-shadow:var(--sh)}
+.qsn{font-size:15px;font-weight:700;color:var(--p)}.qsl{font-size:10px;color:var(--ts);margin-top:2px}
+.quick-scroll{display:flex;gap:8px;padding:0 16px 24px;overflow-x:auto}
+.quick-scroll::-webkit-scrollbar{display:none}
+.qcard{flex-shrink:0;width:140px;height:100px;border-radius:var(--r);padding:14px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;transition:.15s}
+.qcard:active{transform:scale(.97)}.qcard i{font-size:22px;color:rgba(255,255,255,0.8)}
+.qcard-t{font-size:12px;font-weight:700;color:white}.qcard-s{font-size:10px;color:rgba(255,255,255,0.7);margin-top:2px}
+
+/* NEARBY */
+.nb-hdr{padding:16px 16px 0}
+.loc-pill{display:inline-flex;align-items:center;gap:5px;background:var(--pale);color:var(--pd);font-size:12px;font-weight:600;padding:6px 12px;border-radius:20px;margin-bottom:10px}
+.nb-t{font-size:20px;font-weight:900;color:var(--t);letter-spacing:-.5px}.nb-s{font-size:12px;color:var(--ts);margin-top:3px}
+.mapbox{margin:12px 16px;height:130px;border-radius:var(--r);position:relative;overflow:hidden;background:#C8E6D4}
+.map-pulse{width:14px;height:14px;background:var(--p);border-radius:50%;border:3px solid white;box-shadow:0 0 0 0 rgba(45,106,79,.5);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(45,106,79,.5)}70%{box-shadow:0 0 0 10px rgba(45,106,79,0)}100%{box-shadow:0 0 0 0 rgba(45,106,79,0)}}
+.map-lbl{background:white;font-size:10px;font-weight:700;color:var(--pd);padding:3px 9px;border-radius:10px;margin-top:5px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.catbar{display:flex;gap:6px;padding:4px 16px 12px;overflow-x:auto}.catbar::-webkit-scrollbar{display:none}
+.cbtn{padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--bdr);background:var(--card);color:var(--ts);cursor:pointer;white-space:nowrap;transition:.18s;display:flex;align-items:center;gap:4px}
+.cbtn.on{background:var(--p);color:white;border-color:var(--p)}
+.plist{padding:0 16px;display:flex;flex-direction:column;gap:8px}
+.pc{background:var(--card);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);cursor:pointer;transition:.15s}
+.pc:active{transform:scale(.98)}
+.prk{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;background:var(--bg);color:var(--ts)}
+.r1{background:#FEF3C7;color:#92400E}.r2{background:#F3F4F6;color:#374151}.r3{background:#FEE2E2;color:#991B1B}
+.pthumb{width:48px;height:48px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px}
+.pinfo{flex:1;min-width:0}.pname{font-size:13px;font-weight:700;color:var(--t)}.pmeta{font-size:11px;color:var(--ts);margin-top:1px}
+.ptags{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;align-items:center}
+.ptag{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500}
+/* 네이버 지도 버튼 */
+.nmap-btn{
+  display:inline-flex;align-items:center;gap:2px;
+  background:#03C75A;color:white;
+  font-size:10px;font-weight:700;
+  padding:3px 7px;border-radius:6px;
+  cursor:pointer;border:none;font-family:inherit;
+  transition:.15s;flex-shrink:0;
+}
+.nmap-btn:active{opacity:.75;transform:scale(.95)}
+.nmap-n{font-size:11px;font-weight:900;letter-spacing:-.5px}
+.pright{text-align:right;flex-shrink:0}.pdist{font-size:12px;font-weight:700;color:var(--p)}.pstar{font-size:11px;color:#F59E0B;margin-top:2px}
+.plan-cta{margin:16px;border-radius:var(--r);background:linear-gradient(135deg,var(--pd),var(--p));padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.plan-cta:active{transform:scale(.98)}
+.plan-cta-ico{width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* PLAN */
+.plan-hero{flex-shrink:0;height:160px;background:linear-gradient(135deg,#0D2B1A,#2D6A4F);padding:52px 24px 24px}
+.plan-h{font-size:24px;font-weight:900;color:white;letter-spacing:-.5px}.plan-s{font-size:12px;color:rgba(255,255,255,.65);margin-top:5px}
+.plan-body{padding:16px}
+.fl{margin-bottom:18px}
+.fl-label{font-size:11px;font-weight:700;color:var(--ts);letter-spacing:.7px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.fl-label i{font-size:14px;color:var(--p)}
+.fl-row{display:flex;gap:6px;flex-wrap:wrap}
+.zone-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.zchip{padding:12px 10px;border-radius:var(--r);border:1.5px solid var(--bdr);background:var(--card);color:var(--ts);cursor:pointer;transition:.18s;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.zchip:active{transform:scale(.97)}
+.zchip.on{background:var(--p);color:white;border-color:var(--p)}
+.zchip-clock{font-size:22px;line-height:1}.zchip-t{font-size:13px;font-weight:700}.zchip-s{font-size:10px;opacity:.75;font-weight:500}
+.zchip.z1.on{background:#1A5C3A;border-color:#1A5C3A}
+.zchip.z2.on{background:#B84530;border-color:#B84530}
+.zchip.z3.on{background:#185FA5;border-color:#185FA5}
+.zchip.z4.on{background:#534AB7;border-color:#534AB7}
+.fchip{padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--bdr);background:var(--card);color:var(--ts);cursor:pointer;transition:.18s;display:flex;align-items:center;gap:4px}
+.fchip.on{background:var(--p);color:white;border-color:var(--p)}
+.fchip.on.ph{background:var(--pur);border-color:var(--pur)}.fchip.on.tr{background:var(--blu);border-color:var(--blu)}
+.trow{display:flex;gap:8px;margin-bottom:18px}
+.tbox{flex:1;background:var(--card);border-radius:var(--rs);padding:12px;box-shadow:var(--sh)}
+.tlbl{font-size:10px;font-weight:700;color:var(--ts);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.tinput{width:100%;border:none;background:transparent;font-size:22px;font-weight:700;color:var(--t);font-family:inherit;cursor:pointer}
+.tinput:focus{outline:none}
+.gbtn{width:100%;padding:17px;background:var(--p);color:white;border:none;border-radius:var(--r);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(45,106,79,.4);transition:.15s}
+.gbtn:active{transform:scale(.98);box-shadow:none}.gbtn:disabled{opacity:.6;cursor:not-allowed}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:22px;height:22px;border:3px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite}
+.ai-loading{display:flex;flex-direction:column;align-items:center;padding:48px 20px;gap:16px}
+.ai-ring{width:64px;height:64px;border:3px solid var(--pale);border-top-color:var(--p);border-radius:50%;animation:spin 1s linear infinite}
+.ai-loading-t{font-size:14px;font-weight:700;color:var(--t)}.ai-loading-s{font-size:12px;color:var(--ts);text-align:center;line-height:1.7}
+.ai-dots{display:flex;gap:6px;margin-top:4px}
+.ai-dots span{width:6px;height:6px;background:var(--p);border-radius:50%;animation:bounce .9s infinite}
+.ai-dots span:nth-child(2){animation-delay:.15s}.ai-dots span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+/* RESULT */
+.res-hdr{background:linear-gradient(150deg,#0D2B1A,#1A5C3A);padding:52px 20px 20px;flex-shrink:0}
+.res-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;margin-bottom:8px}
+.res-t{font-size:20px;font-weight:900;color:white;letter-spacing:-.3px}
+.res-s{font-size:11px;color:rgba(255,255,255,.6);margin-top:4px}
+.res-stats{display:flex;gap:20px;margin-top:14px}
+.rst .n{font-size:20px;font-weight:700;color:white}.rst .l{font-size:10px;color:rgba(255,255,255,.55);margin-top:1px}
+.backbtn{position:absolute;top:50px;left:16px;width:36px;height:36px;background:rgba(255,255,255,.18);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:20}
+.backbtn i{font-size:20px;color:white}
+.timeline{padding:20px 16px 8px}
+.tl{display:flex;gap:12px}
+.tl-l{display:flex;flex-direction:column;align-items:center;width:16px;flex-shrink:0}
+.tldot{width:14px;height:14px;border-radius:50%;flex-shrink:0;border:3px solid white;margin-top:4px}
+.dm{background:#E8603C;box-shadow:0 0 0 3px rgba(232,96,60,.2)}
+.dc{background:#D97706;box-shadow:0 0 0 3px rgba(217,119,6,.2)}
+.ds{background:var(--p);box-shadow:0 0 0 3px rgba(45,106,79,.2)}
+.tlconn{width:2px;flex:1;background:var(--bdr);min-height:12px}
+.tlcard{flex:1;background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+.tltime{font-size:11px;color:var(--ts);font-weight:500}
+.tlname{font-size:14px;font-weight:700;color:var(--t);margin:3px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tltype{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.ty-meal{background:#FEE2E2;color:#991B1B}.ty-cafe{background:#FEF3C7;color:#92400E}.ty-sight{background:var(--pale);color:var(--pd)}
+.tldesc{font-size:11px;color:var(--ts);line-height:1.6;margin-top:2px}
+.tlmv{font-size:10px;color:var(--tm);margin-top:6px;display:flex;align-items:center;gap:4px}
+.tip-pill{display:inline-flex;align-items:center;gap:4px;background:var(--purl);color:var(--pur);font-size:10px;padding:3px 8px;border-radius:10px;margin-top:6px;font-weight:500}
+/* 일정 카드 네이버 지도 링크 */
+.tlnmap{display:inline-flex;align-items:center;gap:3px;background:#03C75A;color:white;font-size:10px;font-weight:700;padding:3px 8px;border-radius:7px;cursor:pointer;border:none;font-family:inherit;margin-top:7px;transition:.15s}
+.tlnmap:active{opacity:.75}
+.ad-bar{margin:4px 16px 12px;background:var(--blul);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:10px;border:1px solid #C7DCF5}
+.ad-bar-txt{flex:1;font-size:11px;color:#0C447C;line-height:1.4}
+.ad-bar-btn{background:var(--blu);color:white;border:none;border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap}
+.adlbl{font-size:9px;color:#7AACCE;margin-top:2px}
+.share-bar{padding:8px 16px 16px;display:flex;gap:8px}
+.shbtn{flex:1;padding:13px;border-radius:var(--rs);border:1.5px solid var(--bdr);background:var(--card);font-size:12px;font-weight:700;color:var(--t);font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:var(--sh);transition:.15s}
+.shbtn:active{transform:scale(.97)}.shbtn.kakao{background:#FEE500;color:#3C1E1E;border-color:#FEE500;flex:2}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp .35s ease forwards;opacity:0}
+.d1{animation-delay:.05s}.d2{animation-delay:.10s}.d3{animation-delay:.15s}
+.d4{animation-delay:.20s}.d5{animation-delay:.25s}.d6{animation-delay:.30s}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- HOME -->
+  <div class="screen on" id="s-home">
+    <div class="home-hero">
+      <div class="hero-content">
+        <div class="hero-eyebrow"><i class="ti ti-map-pin" style="font-size:11px"></i> 제주특별자치도</div>
+        <div class="hero-h1">제주를<br>더 스마트하게</div>
+        <div class="hero-sub">현지인이 만든 진짜 제주 여행 가이드</div>
+        <div class="ai-badge"><i class="ti ti-sparkles" style="font-size:11px"></i> 최단 동선 AI 일정</div>
+      </div>
+      <svg class="hero-wave" viewBox="0 0 390 90" preserveAspectRatio="none">
+        <path d="M0,50 C70,20 150,70 240,40 C310,18 360,55 390,35 L390,90 L0,90Z" fill="rgba(255,255,255,0.07)"/>
+        <path d="M0,68 C90,45 180,72 270,55 C330,42 370,65 390,55 L390,90 L0,90Z" fill="#F4F7F5"/>
+      </svg>
+    </div>
+    <div class="scroll">
+      <div class="mode-grid">
+        <div class="mc hi fu d1" onclick="go('nearby')">
+          <div class="mc-ico ig"><i class="ti ti-map-pin"></i></div>
+          <div class="mc-t">지금 제주에 있어요</div>
+          <div class="mc-s">현재 위치 기반 주변 추천</div>
+        </div>
+        <div class="mc fu d2" onclick="go('plan')">
+          <div class="mc-ico ib"><i class="ti ti-calendar"></i></div>
+          <div class="mc-t">여행 계획 중이에요</div>
+          <div class="mc-s">출발 전 미리 일정 짜기</div>
+        </div>
+      </div>
+      <div class="sec-hdr fu d3"><div class="sec-t">이런 여행 어때요?</div></div>
+      <div class="quick-scroll fu d4">
+        <div class="qcard" style="background:linear-gradient(135deg,#0F6E56,#3BA882)" onclick="qs('1~3시','포토스팟')">
+          <i class="ti ti-camera"></i><div><div class="qcard-t">🕐 성산·김녕 포토투어</div><div class="qcard-s">비자림·월정리·성산</div></div>
+        </div>
+        <div class="qcard" style="background:linear-gradient(135deg,#B84530,#F4845F)" onclick="qs('3~6시','맛집 위주')">
+          <i class="ti ti-bowl-spoon"></i><div><div class="qcard-t">🕒 표선·서귀포 맛집</div><div class="qcard-s">갈치조림·흑돼지·올레</div></div>
+        </div>
+        <div class="qcard" style="background:linear-gradient(135deg,#185FA5,#4A9FE8)" onclick="qs('6~9시','자연 힐링')">
+          <i class="ti ti-leaf"></i><div><div class="qcard-t">🕕 중문·산방산 힐링</div><div class="qcard-s">주상절리·산방산·모슬포</div></div>
+        </div>
+        <div class="qcard" style="background:linear-gradient(135deg,#4A35A0,#7B6FE8)" onclick="qs('9~12시','가족여행')">
+          <i class="ti ti-heart"></i><div><div class="qcard-t">🕘 협재·애월 가족</div><div class="qcard-s">협재해변·한림공원·애월</div></div>
+        </div>
+      </div>
+      <div class="sec-hdr fu d5" style="margin-top:4px"><div class="sec-t">제주 한눈에</div></div>
+      <div class="qstats fu d6">
+        <div class="qs"><div class="qsn">4</div><div class="qsl">시계방향존</div></div>
+        <div class="qs"><div class="qsn">100+</div><div class="qsl">등록장소</div></div>
+        <div class="qs"><div class="qsn">N</div><div class="qsl">지도연결</div></div>
+        <div class="qs"><div class="qsn">현지인</div><div class="qsl">큐레이션</div></div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+    <div class="bnav">
+      <div class="ni on" onclick="go('home')"><i class="ti ti-home"></i><span>홈</span></div>
+      <div class="ni" onclick="go('nearby')"><i class="ti ti-map-search"></i><span>주변</span></div>
+      <div class="ni" onclick="go('plan')"><i class="ti ti-calendar-plus"></i><span>일정</span></div>
+      <div class="ni" onclick="go('nearby')"><i class="ti ti-heart"></i><span>저장</span></div>
+    </div>
+  </div>
+
+  <!-- NEARBY -->
+  <div class="screen" id="s-nearby">
+    <div class="sbar sd"><span>9:41</span><div class="sbi" style="color:var(--ts)"><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></div></div>
+    <div class="scroll">
+      <div class="nb-hdr">
+        <div class="loc-pill"><i class="ti ti-map-pin" style="font-size:12px"></i> 제주시 연동</div>
+        <div class="nb-t">주변 인기 장소</div>
+        <div class="nb-s">현재 위치 기준 · N지도 연결</div>
+      </div>
+      <div class="mapbox">
+        <svg viewBox="0 0 358 130" style="position:absolute;inset:0;width:100%;height:100%">
+          <rect width="358" height="130" fill="#B7E4C7"/>
+          <path d="M0,75 C50,55 100,85 160,65 C210,48 260,78 320,58 L358,55 L358,130 L0,130Z" fill="#97C891" opacity=".5"/>
+          <path d="M40,60 C80,40 140,70 200,50" stroke="#2D6A4F" stroke-width="4" fill="none" opacity=".4"/>
+          <path d="M180,90 C220,70 280,95 340,78" stroke="#2D6A4F" stroke-width="3" fill="none" opacity=".3"/>
+        </svg>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center">
+          <div class="map-pulse"></div>
+          <div class="map-lbl">📍 내 위치</div>
+        </div>
+      </div>
+      <div class="catbar">
+        <div class="cbtn on" onclick="setCat(this,'restaurant')"><i class="ti ti-tools-kitchen-2" style="font-size:13px"></i> 식당</div>
+        <div class="cbtn" onclick="setCat(this,'cafe')"><i class="ti ti-coffee" style="font-size:13px"></i> 카페</div>
+        <div class="cbtn" onclick="setCat(this,'attraction')"><i class="ti ti-mountain" style="font-size:13px"></i> 관광지</div>
+        <div class="cbtn" onclick="setCat(this,'photo')"><i class="ti ti-camera" style="font-size:13px"></i> 포토스팟</div>
+        <div class="cbtn" onclick="setCat(this,'shop')"><i class="ti ti-gift" style="font-size:13px"></i> 소품</div>
+      </div>
+      <div class="plist" id="plist"></div>
+      <div style="height:12px"></div>
+      <div class="plan-cta" onclick="go('plan')">
+        <div class="plan-cta-ico"><i class="ti ti-wand" style="font-size:22px;color:white"></i></div>
+        <div><div style="font-size:13px;font-weight:700;color:white">AI로 하루 일정 짜기</div><div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px">왔다갔다 없는 최단 동선</div></div>
+        <i class="ti ti-chevron-right" style="font-size:20px;color:rgba(255,255,255,.6);margin-left:auto"></i>
+      </div>
+      <div style="height:16px"></div>
+    </div>
+    <div class="bnav">
+      <div class="ni" onclick="go('home')"><i class="ti ti-home"></i><span>홈</span></div>
+      <div class="ni on"><i class="ti ti-map-search"></i><span>주변</span></div>
+      <div class="ni" onclick="go('plan')"><i class="ti ti-calendar-plus"></i><span>일정</span></div>
+      <div class="ni"><i class="ti ti-heart"></i><span>저장</span></div>
+    </div>
+  </div>
+
+  <!-- PLAN -->
+  <div class="screen" id="s-plan">
+    <div class="sbar sl" style="position:absolute;top:0;left:0;right:0;z-index:5"><span>9:41</span><div class="sbi" style="color:white"><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></div></div>
+    <div class="plan-hero">
+      <div class="plan-h">일정 만들기</div>
+      <div class="plan-s">지역 존 · 테마 · 이동수단을 선택하세요</div>
+    </div>
+    <div class="scroll">
+      <div class="plan-body">
+        <div class="fl">
+          <div class="fl-label"><i class="ti ti-clock-hour-3"></i> 여행 지역 (시계 방향 기준)</div>
+          <div class="zone-grid" id="dir-row"></div>
+        </div>
+        <div class="fl"><div class="fl-label"><i class="ti ti-heart"></i> 테마</div><div class="fl-row" id="theme-row"></div></div>
+        <div class="fl"><div class="fl-label"><i class="ti ti-car"></i> 이동수단</div><div class="fl-row" id="trans-row"></div></div>
+        <div class="fl">
+          <div class="fl-label"><i class="ti ti-clock"></i> 시간대</div>
+          <div class="trow">
+            <div class="tbox"><div class="tlbl">출발</div><input type="time" class="tinput" id="t-st" value="09:00"></div>
+            <div class="tbox"><div class="tlbl">종료</div><input type="time" class="tinput" id="t-et" value="19:00"></div>
+          </div>
+        </div>
+        <button class="gbtn" id="gbtn" onclick="genSched()">
+          <i class="ti ti-sparkles" style="font-size:18px"></i> AI 일정 생성하기
+        </button>
+      </div>
+    </div>
+    <div class="bnav">
+      <div class="ni" onclick="go('home')"><i class="ti ti-home"></i><span>홈</span></div>
+      <div class="ni" onclick="go('nearby')"><i class="ti ti-map-search"></i><span>주변</span></div>
+      <div class="ni on"><i class="ti ti-calendar-plus"></i><span>일정</span></div>
+      <div class="ni"><i class="ti ti-heart"></i><span>저장</span></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="s-result">
+    <div class="sbar sl" style="position:absolute;top:0;left:0;right:0;z-index:5"><span>9:41</span><div class="sbi" style="color:white"><i class="ti ti-wifi"></i><i class="ti ti-battery-3"></i></div></div>
+    <div class="backbtn" onclick="go('plan')"><i class="ti ti-arrow-left"></i></div>
+    <div class="res-hdr">
+      <div class="res-badge" id="r-badge"></div>
+      <div class="res-t" id="r-title"></div>
+      <div class="res-s" id="r-sub"></div>
+      <div class="res-stats" id="r-stats"></div>
+    </div>
+    <div class="scroll" id="result-scroll">
+      <div class="timeline" id="timeline"></div>
+      <div class="ad-bar">
+        <i class="ti ti-car" style="font-size:22px;color:var(--blu);flex-shrink:0"></i>
+        <div class="ad-bar-txt">
+          <strong style="font-size:12px;color:#0C447C">제주렌트카 파트너스</strong><br>이 일정을 렌트카로 더 편하게
+          <div class="adlbl">제휴 광고</div>
+        </div>
+        <button class="ad-bar-btn">10% 할인</button>
+      </div>
+      <div class="share-bar">
+        <button class="shbtn" onclick="copyLink()"><i class="ti ti-link" style="font-size:16px"></i> 링크 복사</button>
+        <button class="shbtn kakao" onclick="shareKakao()"><i class="ti ti-brand-kakao" style="font-size:16px"></i> 카카오 공유</button>
+      </div>
+      <div style="height:8px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const S = { dir:'1~3시', theme:'맛집 위주', trans:'렌트카' };
+
+/* ── 네이버 지도 연결 ── */
+function openNmap(name) {
+  const url = 'https://map.naver.com/p/search/' + encodeURIComponent(name + ' 제주');
+  window.open(url, '_blank');
+}
+
+/* ════════════════════════════════════════════
+   장소 데이터 — 네이버플레이스 기준
+   전 카테고리 대폭 확대 + 소품 = 제주 특색 매장
+════════════════════════════════════════════ */
+const PL = {
+
+  /* ── 식당 20곳 ── */
+  restaurant: [
+    {n:'올래국수',           m:'제주 고기국수 원조 · 현지인 1위',    star:'★4.9', d:'제주시', tags:['고기국수','현지인'],        e:'🍜', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'자매국수',           m:'60년 전통 고기국수 명가',             star:'★4.8', d:'제주시', tags:['고기국수','60년전통'],       e:'🍜', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'우진해장국',         m:'제주 몸국 · 고사리해장국',            star:'★4.8', d:'제주시', tags:['몸국','해장국'],             e:'🍲', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'고집돌우럭',         m:'제주 우럭조림 전문점',                star:'★4.8', d:'제주시', tags:['우럭조림','향토음식'],       e:'🐟', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'이춘옥원조고등어쌈밥',m:'원조 고등어쌈밥 한상',              star:'★4.7', d:'제주시', tags:['고등어','쌈밥'],             e:'🐟', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'진미통닭',           m:'제주식 닭요리 · 50년 전통',           star:'★4.7', d:'제주시', tags:['닭요리','50년'],             e:'🍗', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'돈사돈 제주본점',    m:'제주 흑돼지 전문 · 숯불구이',         star:'★4.7', d:'제주시', tags:['흑돼지','숯불'],             e:'🥩', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'숙성도 제주본점',    m:'흑돼지 숙성 전문 · 네이버 1위',       star:'★4.8', d:'제주시', tags:['흑돼지','숙성'],             e:'🥩', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'오는정김밥',         m:'제주 1위 김밥 · 줄서는 맛집',         star:'★4.8', d:'제주시', tags:['김밥','인기'],               e:'🍱', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'세화해녀의집',       m:'해녀 직접 잡은 해산물 정식',          star:'★4.8', d:'구좌읍', tags:['해산물','해녀'],             e:'🦞', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'구좌 당근 칼국수',   m:'제주 특산 당근 넣은 칼국수',          star:'★4.6', d:'구좌읍', tags:['칼국수','당근'],             e:'🍜', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'성산 고등어쌈밥',    m:'성산항 고등어쌈밥 · 싱싱 재료',       star:'★4.6', d:'성산읍', tags:['고등어','성산'],             e:'🐟', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'서귀포 갈치조림 골목',m:'서귀포 대표 갈치조림 거리',          star:'★4.7', d:'서귀포', tags:['갈치조림','서귀포'],         e:'🐠', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'보목 해녀촌',        m:'보목리 해녀 해산물 식당',              star:'★4.6', d:'서귀포', tags:['해산물','해녀','보목'],       e:'🦀', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'한림 전복뚝배기',    m:'한림 전복 요리 · 전복죽 전문',         star:'★4.7', d:'한림읍', tags:['전복','뚝배기'],             e:'🍲', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'협재 흑돼지 구이',   m:'협재 근처 로컬 흑돼지 구이',           star:'★4.6', d:'한림읍', tags:['흑돼지','협재'],             e:'🥩', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'모슬포 방어회',      m:'제주 최고 방어 명산지 · 겨울별미',     star:'★4.8', d:'대정읍', tags:['방어회','겨울'],             e:'🐡', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'서귀포 한치물회',    m:'여름 한치물회 · 현지인 추천',          star:'★4.6', d:'서귀포', tags:['한치','여름'],               e:'🦑', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'보말죽 전문점',      m:'제주 보말로 만든 진한 보말죽',          star:'★4.5', d:'제주시', tags:['보말죽','향토'],             e:'🍲', tc:'#D8F3DC', oc:'#0F6E56'},
+    {n:'제주 옥돔구이',      m:'제주 특산 옥돔 · 은은한 맛',           star:'★4.7', d:'제주시', tags:['옥돔','특산'],               e:'🐟', tc:'#D8F3DC', oc:'#0F6E56'}
+  ],
+
+  /* ── 카페 18곳 ── */
+  cafe: [
+    {n:'카페치즈태비',        m:'구좌읍 행원리 · 오션뷰 현지인 카페',  star:'★4.9', d:'구좌읍', tags:['현지추천','오션뷰'],        e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'몽상드애월',          m:'애월 대표 오션뷰 카페',                star:'★4.8', d:'애월읍', tags:['오션뷰','애월'],             e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'봄날',                m:'협재 감귤 디저트 명소',                star:'★4.8', d:'한림읍', tags:['감귤','디저트'],             e:'🍊', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'오설록 티뮤지엄',     m:'제주 녹차밭 · 차 문화 체험 공간',      star:'★4.7', d:'안덕면', tags:['녹차','문화공간'],           e:'🍵', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'이니스프리 제주하우스',m:'자연 감성 카페 & 뷰티 체험',           star:'★4.6', d:'안덕면', tags:['자연','뷰티'],               e:'🌿', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'더클리프',            m:'한경 해안 절벽 오션뷰 카페',            star:'★4.8', d:'한경면', tags:['오션뷰','절벽'],             e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'앤트러사이트 제주',   m:'제주시 핸드드립 스페셜티 커피',        star:'★4.7', d:'제주시', tags:['스페셜티','핸드드립'],       e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'빈브라더스 제주',     m:'서귀포 스페셜티 로스터리',              star:'★4.7', d:'서귀포', tags:['스페셜티','로스터리'],       e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'제주커피박물관 바움', m:'한림 커피 박물관 카페 · 이색 체험',    star:'★4.5', d:'한림읍', tags:['커피박물관','체험'],          e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'세화 블루밀',         m:'세화해변 앞 오션뷰 감성 카페',          star:'★4.7', d:'구좌읍', tags:['오션뷰','세화'],             e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'하귤당',              m:'서귀포 감귤 디저트 명소',               star:'★4.8', d:'서귀포', tags:['감귤','디저트','서귀포'],    e:'🍊', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'공백',                m:'애월 미니멀 감성 카페',                 star:'★4.7', d:'애월읍', tags:['감성','미니멀'],             e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'테라로사 제주',       m:'고성 오션뷰 스페셜티 커피',             star:'★4.7', d:'구좌읍', tags:['스페셜티','오션뷰'],         e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'아우토반 협재',       m:'협재 뷰 대형 감성 카페',                star:'★4.6', d:'한림읍', tags:['뷰카페','협재'],             e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'월정리 카페거리',     m:'인스타 감성 해변 카페 거리',            star:'★4.6', d:'구좌읍', tags:['인스타','월정리'],           e:'📸', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'본태뮤지엄 카페',     m:'안도 타다오 건축 미술관 카페',          star:'★4.5', d:'안덕면', tags:['건축','미술관'],             e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'산방산 뷰 카페',      m:'산방산 배경 오션뷰 카페',               star:'★4.5', d:'안덕면', tags:['뷰카페','산방산'],           e:'☕', tc:'#FEF3C7', oc:'#92400E'},
+    {n:'도두봉 해안 카페',    m:'도두봉 앞 일몰 오션뷰 카페',            star:'★4.5', d:'제주시', tags:['일몰','오션뷰'],             e:'☕', tc:'#FEF3C7', oc:'#92400E'}
+  ],
+
+  /* ── 관광지 25곳 ── */
+  attraction: [
+    {n:'한라산 국립공원',     m:'제주 최고봉 1950m · 백록담',           star:'★5.0', d:'제주시', tags:['등산','세계유산','백록담'], e:'🏔️', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'성산일출봉',          m:'유네스코 세계자연유산 · 일출 명소',     star:'★4.9', d:'성산읍', tags:['세계유산','일출'],          e:'🌋', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'협재해수욕장',        m:'에메랄드빛 서쪽 대표 해변',             star:'★4.8', d:'한림읍', tags:['해변','에메랄드'],          e:'🏖️', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'우도',                m:'섬속의 섬 · 자전거 일주 · 땅콩아이스크림',star:'★4.8',d:'성산읍',tags:['섬','자전거','명소'],      e:'🏝️', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'비자림',              m:'500년 비자나무 숲길 · 제주 유일',        star:'★4.7', d:'구좌읍', tags:['숲길','자연유산'],          e:'🌳', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'만장굴',              m:'세계 최장 용암동굴 · 유네스코',          star:'★4.7', d:'구좌읍', tags:['동굴','세계유산'],          e:'🕳️', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'섭지코지',            m:'성산 해안 절경 · 건축 명소',             star:'★4.7', d:'성산읍', tags:['해안','건축','드라마'],     e:'🌊', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'오설록 티뮤지엄',     m:'제주 녹차밭 & 차 박물관',               star:'★4.7', d:'안덕면', tags:['녹차','박물관'],            e:'🍵', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'에코랜드 테마파크',   m:'곶자왈 기차 여행 · 가족 인기',          star:'★4.6', d:'조천읍', tags:['기차','가족','자연'],       e:'🚂', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'카멜리아힐',          m:'동백꽃 · 유럽풍 정원',                   star:'★4.7', d:'안덕면', tags:['동백','정원','포토'],       e:'🌸', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'새별오름',            m:'억새밭 · 360도 파노라마',                star:'★4.7', d:'애월읍', tags:['오름','억새','노을'],       e:'🌾', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'사려니숲길',          m:'삼나무 신비로운 숲 트레킹',              star:'★4.7', d:'조천읍', tags:['숲길','트레킹'],            e:'🌲', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'용눈이오름',          m:'제주 최고 경관 오름',                     star:'★4.8', d:'구좌읍', tags:['오름','경관'],              e:'🌿', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'다랑쉬오름',          m:'분화구 전망 · 일출 명소',                star:'★4.7', d:'구좌읍', tags:['오름','분화구'],            e:'🌿', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'제주돌문화공원',      m:'제주 돌 & 신화 · 탐방 체험',             star:'★4.5', d:'조천읍', tags:['돌문화','체험'],            e:'🪨', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'성읍민속마을',        m:'500년 역사 전통 마을 · 말 체험',          star:'★4.5', d:'표선면', tags:['민속','전통','체험'],       e:'🏘️', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'제주민속촌',          m:'제주 전통 민속 체험 · 가족 추천',         star:'★4.5', d:'표선면', tags:['민속','체험','가족'],       e:'🏡', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'천지연폭포',          m:'천연기념물 · 야간개장 가능',              star:'★4.6', d:'서귀포', tags:['폭포','야간'],              e:'💧', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'주상절리대',          m:'육각형 절벽 & 파도 · 지질 명소',          star:'★4.7', d:'서귀포', tags:['지질','절벽'],              e:'🏔️', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'산방산',              m:'화산체 · 산방굴사 · 바다 전망',           star:'★4.7', d:'안덕면', tags:['화산','전망'],              e:'⛰️', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'용머리해안',          m:'100만년 화산 퇴적층 해안 지형',           star:'★4.6', d:'안덕면', tags:['지질','화산','해안'],       e:'🌊', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'함덕해수욕장',        m:'제주 북쪽 에메랄드 해변',                 star:'★4.7', d:'조천읍', tags:['해변','수영'],              e:'🏖️', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'금능해수욕장',        m:'비양도 배경 · 한적한 해변',               star:'★4.7', d:'한림읍', tags:['해변','비양도'],            e:'🏖️', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'절물자연휴양림',      m:'삼나무 자연 휴양 & 산책',                 star:'★4.6', d:'제주시', tags:['휴양림','삼나무','산책'],   e:'🌲', tc:'#E6F1FB', oc:'#185FA5'},
+    {n:'쇠소깍',              m:'용암과 바다 만남 · 투명 카약 명소',        star:'★4.6', d:'서귀포', tags:['카약','자연'],              e:'🚣', tc:'#E6F1FB', oc:'#185FA5'}
+  ],
+
+  /* ── 포토스팟 15곳 ── */
+  photo: [
+    {n:'성산일출봉',          m:'일출 베스트 · 06:00~08:00',             star:'★4.9', d:'성산읍', tags:['일출','세계유산'],         e:'🌅', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'이호테우해변',        m:'빨간 등대 · 일몰 골든아워',             star:'★4.8', d:'제주시', tags:['등대','일몰'],             e:'🌇', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'비자림',              m:'빛 내리는 비자나무 터널',                star:'★4.8', d:'구좌읍', tags:['숲길','빛내림'],           e:'🌳', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'새별오름',            m:'억새밭 노을 · 360도 뷰',                 star:'★4.7', d:'애월읍', tags:['노을','파노라마'],         e:'🌾', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'카멜리아힐',          m:'동백꽃 & 유럽풍 정원',                   star:'★4.8', d:'안덕면', tags:['동백','감성'],             e:'🌸', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'섭지코지',            m:'성산 해안 & 건축 포토 명소',             star:'★4.7', d:'성산읍', tags:['해안','건축'],             e:'🌊', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'광치기해변',          m:'성산일출봉 배경 에메랄드 해변',          star:'★4.7', d:'성산읍', tags:['해변','성산배경'],         e:'🏖️', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'세화해변 파스텔골목', m:'파스텔 건물 & 인스타 1위 명소',          star:'★4.6', d:'구좌읍', tags:['인스타','파스텔'],         e:'🎨', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'월정리해수욕장',      m:'해변 카페거리 & 풍력발전기',             star:'★4.7', d:'구좌읍', tags:['풍력','인스타'],           e:'💨', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'용눈이오름',          m:'제주 최고 경관 오름 파노라마',            star:'★4.8', d:'구좌읍', tags:['오름','파노라마'],         e:'🌿', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'방주교회',            m:'물 위의 교회 · 건축 포토 명소',          star:'★4.6', d:'안덕면', tags:['건축','교회'],             e:'⛪', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'안돌오름 나무터널',   m:'삼나무 터널 · 숲속 산책로',              star:'★4.7', d:'구좌읍', tags:['터널','숲길'],             e:'🌲', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'산방산 산방굴사',     m:'해안 절벽 위 바다 전망 포인트',          star:'★4.7', d:'안덕면', tags:['전망','절벽'],             e:'⛰️', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'수월봉 엉알길',       m:'서쪽 끝 절벽 해안 트레일',               star:'★4.6', d:'한경면', tags:['절벽','트레일'],           e:'🌊', tc:'#EEEDFE', oc:'#534AB7'},
+    {n:'오설록 티뮤지엄 정원',m:'광활한 녹차밭 포토스팟',                 star:'★4.7', d:'안덕면', tags:['녹차밭','정원'],           e:'🍵', tc:'#EEEDFE', oc:'#534AB7'}
+  ],
+
+  /* ── 소품 — 제주 특색 매장 15곳 (체인점 제외) ── */
+  shop: [
+    {n:'제주초콜릿연구소',    m:'감귤·한라봉 초콜릿 전문',               star:'★4.8', d:'서귀포', tags:['초콜릿','기념품'],          e:'🍫', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'오설록 플래그십스토어',m:'제주 차·다기·굿즈 공식 플래그십',      star:'★4.7', d:'안덕면', tags:['녹차','굿즈'],             e:'🍵', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'이니스프리 제주하우스샵',m:'제주 자연 성분 스킨케어 브랜드샵',   star:'★4.6', d:'안덕면', tags:['화장품','자연성분'],        e:'🌿', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주올레 기념품숍',   m:'올레 공식 굿즈 · 길 지도 · 뱃지',       star:'★4.5', d:'서귀포', tags:['올레','공식굿즈'],          e:'🗺️', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'동문재래시장',        m:'제주 전통 먹거리 & 기념품 집산지',        star:'★4.6', d:'제주시', tags:['재래시장','전통'],          e:'🏪', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주 돌하르방 공방',  m:'현무암 수공예 돌하르방 & 소품',          star:'★4.7', d:'제주시', tags:['수공예','돌하르방'],         e:'🗿', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주 감귤 직판장',    m:'감귤·한라봉·천혜향 산지 직판',           star:'★4.5', d:'제주시', tags:['감귤','직판'],              e:'🍊', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주 전통주 판매점',  m:'고소리술·오메기술 제주 전통주 전문',      star:'★4.6', d:'제주시', tags:['전통주','고소리술'],        e:'🍶', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주해녀 수공예점',   m:'해녀 테마 수공예 기념품',                 star:'★4.5', d:'구좌읍', tags:['해녀','수공예'],            e:'🤿', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주 현무암 캔들샵',  m:'화산석·제주 향 캔들 전문',               star:'★4.7', d:'제주시', tags:['캔들','현무암'],            e:'🕯️', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주 감귤잼 공방',    m:'감귤 마멀레이드·잼 수제 전문',            star:'★4.6', d:'제주시', tags:['감귤잼','수제'],            e:'🫙', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주 전통공예 체험관',m:'탈·그릇·옹기 체험 & 구매',               star:'★4.5', d:'제주시', tags:['체험','전통공예'],          e:'🏺', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'섭지코지 유리공예',   m:'제주 바다 유리 핸드메이드 공방',          star:'★4.6', d:'성산읍', tags:['유리공예','핸드메이드'],    e:'🔮', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주 옥돔 건어물',    m:'제주 특산 옥돔 건어물 전문',              star:'★4.6', d:'제주시', tags:['옥돔','건어물','특산'],     e:'🐟', tc:'#FCE8E0', oc:'#D85A30'},
+    {n:'제주 흑돼지 가공식품점',m:'흑돼지 육포·소시지·가공식품',           star:'★4.5', d:'제주시', tags:['흑돼지','육포','선물'],     e:'🥩', tc:'#FCE8E0', oc:'#D85A30'}
+  ]
+};
+
+/* ════════════════════════════════════════════════
+   존 메타 & 일정 DB (시계방향 4존)
+════════════════════════════════════════════════ */
+const ZONE_META = {
+  '1~3시':  { clock:'🕐', area:'성산·김녕',    cls:'z1' },
+  '3~6시':  { clock:'🕒', area:'표선·서귀포동', cls:'z2' },
+  '6~9시':  { clock:'🕕', area:'중문·서귀포서', cls:'z3' },
+  '9~12시': { clock:'🕘', area:'협재·애월',     cls:'z4' }
+};
+
+const ZONES = {
+  '1~3시': {
+    startPos:{lat:33.494,lng:126.730},
+    bk:[
+      {n:'김녕 어촌 아침백반',d:'김녕 현지 어부들 단골 아침 백반',stay:40,type:'meal',bus:true,lat:33.556,lng:126.773},
+      {n:'세화민속오일시장',d:'구좌 현지인 아침 — 흑돼지국밥',stay:40,type:'meal',bus:true,lat:33.522,lng:126.844}
+    ],
+    si:[
+      {n:'비자림',d:'500년 비자나무 숲길 — 제주 동쪽 진입 첫 명소',stay:60,type:'sight',th:['자연 힐링','포토스팟'],bus:true,lat:33.494,lng:126.730,tip:'오전 이른 시간에 빛이 숲 사이로 들어와 인생샷 포인트예요'},
+      {n:'만장굴',d:'세계 최장 용암동굴 — 여름에도 서늘해요',stay:55,type:'sight',th:['자연 힐링','가족여행'],bus:false,lat:33.528,lng:126.771},
+      {n:'김녕해수욕장',d:'에메랄드 물빛 조용한 해수욕장',stay:60,type:'sight',th:['가족여행','자연 힐링'],bus:true,lat:33.556,lng:126.773},
+      {n:'월정리해수욕장',d:'인스타 감성 에메랄드 해변 & 카페 거리',stay:60,type:'sight',th:['포토스팟','맛집 위주'],bus:true,lat:33.557,lng:126.795},
+      {n:'세화해변',d:'파스텔 골목 & 조용한 해변 산책',stay:50,type:'sight',th:['포토스팟'],bus:true,lat:33.523,lng:126.844},
+      {n:'용눈이오름',d:'제주 최고 경관 오름 — 파노라마 뷰',stay:70,type:'sight',th:['자연 힐링','포토스팟'],bus:false,lat:33.447,lng:126.829,tip:'정상 능선을 따라 걸으면 360도 전망이 펼쳐져요'},
+      {n:'성산일출봉',d:'유네스코 세계유산 — 1~3시 존 최동단 대표 명소',stay:80,type:'sight',th:['포토스팟','자연 힐링'],bus:true,lat:33.459,lng:126.942,tip:'정상에서 바라보는 우도 풍경이 압권이에요'},
+      {n:'우도',d:'섬 속의 섬 — 자전거 일주 & 땅콩아이스크림',stay:120,type:'sight',th:['자연 힐링','가족여행'],bus:false,lat:33.504,lng:126.954}
+    ],
+    ca:[
+      {n:'카페치즈태비',d:'구좌읍 행원리 현지인 감성 카페 — 바다뷰에 조용해서 쉬어가기 딱 좋아요',stay:45,type:'cafe',bus:true,lat:33.537,lng:126.828},
+      {n:'세화 블루밀',d:'세화해변 앞 오션뷰 감성 카페',stay:40,type:'cafe',bus:true,lat:33.523,lng:126.844}
+    ],
+    lu:[
+      {n:'세화해녀의집',d:'해녀가 직접 잡아올린 해산물 정식 — 물회 추천',stay:55,type:'meal',bus:true,lat:33.523,lng:126.844},
+      {n:'구좌 당근 칼국수',d:'제주 특산 당근이 들어간 구좌 명물',stay:50,type:'meal',bus:true,lat:33.527,lng:126.840}
+    ],
+    di:[
+      {n:'성산 고등어쌈밥',d:'성산항 앞 신선한 고등어쌈밥 저녁',stay:60,type:'meal',bus:true,lat:33.459,lng:126.942},
+      {n:'성산 해녀촌',d:'성산 현지 해녀촌 해산물 저녁',stay:65,type:'meal',bus:true,lat:33.462,lng:126.940}
+    ]
+  },
+  '3~6시': {
+    startPos:{lat:33.393,lng:126.789},
+    bk:[
+      {n:'성읍 아침 백반',d:'성읍 마을 입구 현지 식당 — 된장찌개 백반',stay:40,type:'meal',bus:true,lat:33.393,lng:126.789},
+      {n:'표선 로컬 백반집',d:'표선 현지인 아침 백반 — 고등어구이 포함',stay:40,type:'meal',bus:true,lat:33.374,lng:126.859}
+    ],
+    si:[
+      {n:'성읍민속마을',d:'500년 역사 제주 전통 민속 마을 — 말 먹이주기 체험',stay:65,type:'sight',th:['가족여행','자연 힐링'],bus:true,lat:33.393,lng:126.789},
+      {n:'표선해수욕장',d:'원형 백사장이 아름다운 동남 해변',stay:55,type:'sight',th:['자연 힐링','가족여행'],bus:true,lat:33.374,lng:126.859},
+      {n:'큰엉해안경승지',d:'남원 해안 절벽 & 에메랄드 바다',stay:50,type:'sight',th:['자연 힐링','포토스팟'],bus:false,lat:33.268,lng:126.712},
+      {n:'쇠소깍',d:'용암과 바다가 만나는 신비로운 하구 — 투명 카약 추천',stay:50,type:'sight',th:['자연 힐링','포토스팟'],bus:true,lat:33.258,lng:126.617},
+      {n:'천지연폭포',d:'천연기념물 — 야간개장도 하는 아름다운 폭포',stay:55,type:'sight',th:['자연 힐링','가족여행','포토스팟'],bus:true,lat:33.248,lng:126.558},
+      {n:'정방폭포',d:'바다로 직접 떨어지는 국내 유일 폭포',stay:45,type:'sight',th:['자연 힐링','포토스팟'],bus:true,lat:33.244,lng:126.566},
+      {n:'외돌개',d:'서귀포 기암절벽 — 올레 7코스 하이라이트',stay:50,type:'sight',th:['자연 힐링','포토스팟'],bus:false,lat:33.235,lng:126.544}
+    ],
+    ca:[
+      {n:'이중섭 거리 카페',d:'서귀포 문화예술 거리 감성 카페',stay:40,type:'cafe',bus:true,lat:33.250,lng:126.561},
+      {n:'하귤당',d:'서귀포 감귤 디저트 명소 — 하귤 에이드 추천',stay:45,type:'cafe',bus:true,lat:33.248,lng:126.558}
+    ],
+    lu:[
+      {n:'서귀포 갈치조림',d:'서귀포 대표 갈치조림 한상 — 현지 어부 추천',stay:55,type:'meal',bus:true,lat:33.248,lng:126.558},
+      {n:'제주민속촌 근처 흑돼지',d:'표선 로컬 흑돼지 구이 점심',stay:55,type:'meal',bus:false,lat:33.374,lng:126.850}
+    ],
+    di:[
+      {n:'서귀포 흑돼지 거리',d:'서귀포 대표 흑돼지 저녁 구이',stay:70,type:'meal',bus:true,lat:33.248,lng:126.558},
+      {n:'서귀포 해산물 구이',d:'신선한 서귀포 해산물 저녁',stay:65,type:'meal',bus:true,lat:33.248,lng:126.564}
+    ]
+  },
+  '6~9시': {
+    startPos:{lat:33.248,lng:126.440},
+    bk:[
+      {n:'서귀포 매일올레시장',d:'서귀포 대표 재래시장 — 아침 투어 후 국수 한 그릇',stay:45,type:'meal',bus:true,lat:33.248,lng:126.564},
+      {n:'서귀포 고기국수',d:'서귀포 현지인 아침 고기국수',stay:40,type:'meal',bus:true,lat:33.248,lng:126.558}
+    ],
+    si:[
+      {n:'중문해수욕장',d:'남쪽 대표 서핑 & 해수욕 해변',stay:70,type:'sight',th:['가족여행','자연 힐링'],bus:true,lat:33.247,lng:126.412},
+      {n:'주상절리대',d:'육각형 절벽 & 파도 — 제주 남서부 대표 절경',stay:45,type:'sight',th:['포토스팟'],bus:true,lat:33.240,lng:126.422,tip:'파도 높은 날 더 극적인 사진 연출 가능해요'},
+      {n:'카멜리아힐',d:'동백꽃 & 유럽풍 정원 감성샷',stay:60,type:'sight',th:['포토스팟'],bus:false,lat:33.307,lng:126.306,tip:'오전 10시 이전 방문 시 인파 없이 여유롭게 촬영 가능해요'},
+      {n:'산방산',d:'제주 대표 화산체 & 산방굴사 바다 전망',stay:65,type:'sight',th:['자연 힐링','포토스팟'],bus:true,lat:33.233,lng:126.314,tip:'산방굴사 안에서 내려다보는 바다 전망이 압권이에요'},
+      {n:'용머리해안',d:'100만년 화산 퇴적층 해안 — 산방산 바로 옆',stay:50,type:'sight',th:['자연 힐링','포토스팟'],bus:true,lat:33.228,lng:126.310},
+      {n:'수월봉',d:'서쪽 끝 절벽 & 탁 트인 오션뷰 — 화산지질 트레일',stay:50,type:'sight',th:['자연 힐링','포토스팟'],bus:false,lat:33.309,lng:126.165},
+      {n:'송악산',d:'이중 분화구 & 마라도 조망 — 제주 최남단 근처',stay:50,type:'sight',th:['자연 힐링','포토스팟'],bus:false,lat:33.201,lng:126.281}
+    ],
+    ca:[
+      {n:'산방산 뷰 카페',d:'산방산 배경 오션뷰 감성 카페',stay:40,type:'cafe',bus:true,lat:33.234,lng:126.316},
+      {n:'중문 해변 카페',d:'중문 해변 앞 바다 뷰 카페',stay:40,type:'cafe',bus:true,lat:33.247,lng:126.412}
+    ],
+    lu:[
+      {n:'모슬포 방어회',d:'제주 최고 방어 명산지 — 겨울 방어회 최고',stay:60,type:'meal',bus:false,lat:33.218,lng:126.246},
+      {n:'중문 해산물 정식',d:'중문 근처 신선한 해산물 한상',stay:55,type:'meal',bus:true,lat:33.247,lng:126.412}
+    ],
+    di:[
+      {n:'서귀포서 흑돼지',d:'서귀포 서부 흑돼지 저녁 구이',stay:65,type:'meal',bus:true,lat:33.248,lng:126.420},
+      {n:'모슬포 한치물회',d:'모슬포 한치물회 — 여름 한정 별미',stay:60,type:'meal',bus:false,lat:33.218,lng:126.246}
+    ]
+  },
+  '9~12시': {
+    startPos:{lat:33.510,lng:126.490},
+    bk:[
+      {n:'제주 동문시장',d:'제주 대표 재래시장 아침 투어',stay:45,type:'meal',bus:true,lat:33.510,lng:126.532},
+      {n:'애월 브런치 카페',d:'애월 바다 보며 여유로운 아침 브런치',stay:45,type:'cafe',bus:true,lat:33.468,lng:126.316}
+    ],
+    si:[
+      {n:'도두봉',d:'제주공항 & 한라산 동시 조망 오름',stay:50,type:'sight',th:['포토스팟','자연 힐링'],bus:true,lat:33.505,lng:126.476,tip:'일출 때 방문하면 황금빛 배경으로 인생샷 가능해요'},
+      {n:'이호테우해변',d:'빨간 등대 & 일몰 포토스팟',stay:50,type:'sight',th:['포토스팟'],bus:true,lat:33.497,lng:126.452,tip:'해질녘 30분이 골든아워! 빨간 등대와 함께 인생샷'},
+      {n:'애월 해안도로',d:'제주 드라이브 1번지 — 오션뷰 해안 도로',stay:50,type:'sight',th:['포토스팟','맛집 위주'],bus:false,lat:33.468,lng:126.316},
+      {n:'곽지해수욕장',d:'조용한 서쪽 숨은 해변 — 현지인 선호',stay:55,type:'sight',th:['자연 힐링'],bus:true,lat:33.457,lng:126.304},
+      {n:'협재해수욕장',d:'에메랄드빛 서쪽 대표 해변',stay:70,type:'sight',th:['자연 힐링','가족여행','포토스팟'],bus:true,lat:33.394,lng:126.239,tip:'한림공원과 묶어서 방문하면 이동 효율이 좋아요'},
+      {n:'한림공원',d:'야자수 정원 & 용암동굴 — 아이들 인기 명소',stay:65,type:'sight',th:['가족여행','자연 힐링'],bus:true,lat:33.413,lng:126.265},
+      {n:'새별오름',d:'억새밭 & 360도 파노라마 뷰',stay:60,type:'sight',th:['포토스팟','자연 힐링'],bus:false,lat:33.361,lng:126.363,tip:'노을 시간에 맞춰 방문하면 황금빛 억새 사진 찍을 수 있어요'}
+    ],
+    ca:[
+      {n:'몽상드애월',d:'애월 대표 오션뷰 감성 카페',stay:45,type:'cafe',bus:true,lat:33.470,lng:126.315},
+      {n:'봄날',d:'협재 근처 감귤 디저트 카페',stay:40,type:'cafe',bus:true,lat:33.394,lng:126.250}
+    ],
+    lu:[
+      {n:'한림 전복뚝배기',d:'한림 전복 요리 전문 — 전복죽 추천',stay:55,type:'meal',bus:true,lat:33.413,lng:126.265},
+      {n:'협재 흑돼지 구이',d:'협재 근처 로컬 흑돼지',stay:55,type:'meal',bus:true,lat:33.394,lng:126.260}
+    ],
+    di:[
+      {n:'애월 해산물 타운',d:'애월 해안가 신선한 저녁',stay:65,type:'meal',bus:true,lat:33.468,lng:126.316},
+      {n:'한림항 신선 회',d:'한림항 신선한 회 & 해산물',stay:60,type:'meal',bus:true,lat:33.413,lng:126.265}
+    ]
+  }
+};
+
+/* ── 지리 유틸 ── */
+function kmBetween(a,b){
+  const R=6371,dLat=(b.lat-a.lat)*Math.PI/180,dLng=(b.lng-a.lng)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.asin(Math.sqrt(x));
+}
+function travelMin(a,b,isBus){return Math.max(7,Math.round(kmBetween(a,b)/(isBus?25:50)*60));}
+function sortByRoute(places,start){
+  if(!places.length)return[];
+  const rem=[...places],route=[];let cur=start;
+  while(rem.length){let ni=0,minD=Infinity;rem.forEach((p,i)=>{const d=kmBetween(cur,p);if(d<minD){minD=d;ni=i;}});route.push(rem.splice(ni,1)[0]);cur=route[route.length-1];}
+  return route;
+}
+function nearest(pool,pos,used,isBus){
+  return pool.filter(x=>!used.has(x.n)&&(!isBus||x.bus!==false)).sort((a,b)=>kmBetween(pos,a)-kmBetween(pos,b))[0]||null;
+}
+
+function toM(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+function toT(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+
+/* ── 일정 생성 ── */
+function buildLocal(st,et){
+  const src=ZONES[S.dir],isBus=S.trans==='뚜벅이',theme=S.theme;
+  const startM=toM(st),endM=toM(et),LUNCH=12*60,DINNER=18*60,hasDinner=endM>17*60+30;
+  const used=new Set(),out=[];let cur=startM,curPos=src.startPos;
+  const mv=it=>isBus?(it.mb||20):(it.mc||15);
+
+  if(startM<9*60+30){const bk=nearest(src.bk,curPos,used,isBus);if(bk){used.add(bk.n);out.push({...bk,start:toT(cur),end:toT(cur+bk.stay)});curPos=bk;cur+=bk.stay;}}
+
+  const pool=src.si.filter(s=>!isBus||s.bus!==false);
+  const themed=pool.filter(s=>s.th&&s.th.includes(theme));
+  const others=pool.filter(s=>!s.th||!s.th.includes(theme));
+  let sightQ=[...sortByRoute(themed,curPos),...sortByRoute(others,curPos)];
+
+  while(sightQ.length&&cur<LUNCH-45){
+    const s=sightQ[0];const tmv=out.length?travelMin(curPos,s,isBus):0;
+    if(cur+tmv+s.stay>LUNCH+15)break;
+    cur+=tmv;used.add(s.n);out.push({...s,start:toT(cur),end:toT(cur+s.stay)});curPos=s;cur+=s.stay;sightQ.shift();
+  }
+
+  cur=Math.max(cur,LUNCH);
+  const lu=nearest(src.lu,curPos,used,isBus);
+  if(lu){const tmv=travelMin(curPos,lu,isBus);cur+=tmv;used.add(lu.n);out.push({...lu,start:toT(cur),end:toT(cur+lu.stay)});curPos=lu;cur+=lu.stay;}
+
+  const aftEnd=hasDinner?DINNER-35:endM-20;let cafeDone=false;
+  sightQ=sortByRoute(sightQ.filter(s=>!used.has(s.n)),curPos);
+
+  while(cur<aftEnd-20){
+    if(!cafeDone&&cur>=13*60+30){
+      const ca=nearest(src.ca,curPos,used,isBus);
+      if(ca){const tmv=travelMin(curPos,ca,isBus);if(cur+tmv+ca.stay<aftEnd-35){cur+=tmv;used.add(ca.n);out.push({...ca,start:toT(cur),end:toT(cur+ca.stay)});curPos=ca;cur+=ca.stay;sightQ=sortByRoute(sightQ.filter(s=>!used.has(s.n)),curPos);cafeDone=true;continue;}}
+    }
+    const nxt=sightQ.find(s=>!used.has(s.n));if(!nxt)break;
+    const tmv=travelMin(curPos,nxt,isBus);if(cur+tmv+nxt.stay>aftEnd)break;
+    cur+=tmv;used.add(nxt.n);out.push({...nxt,start:toT(cur),end:toT(cur+nxt.stay)});curPos=nxt;cur+=nxt.stay;
+    sightQ=sightQ.filter(s=>s.n!==nxt.n);
+  }
+
+  if(hasDinner){cur=Math.max(cur,DINNER);const di=nearest(src.di,curPos,used,isBus);if(di){const tmv=travelMin(curPos,di,isBus);cur+=tmv;used.add(di.n);out.push({...di,start:toT(cur),end:toT(cur+di.stay)});}}
+
+  return out.map((item,i)=>({name:item.n,desc:item.d,type:item.type,start:item.start,end:item.end,stay:item.stay,move:i<out.length-1?travelMin(item,out[i+1],isBus):0,tip:item.tip||null}));
+}
+
+/* ── 네비 & 칩 ── */
+function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById('s-'+id).classList.add('on');}
+function qs(dir,theme){S.dir=dir;S.theme=theme;syncChips();go('plan');}
+
+function mkChips(id,items,role){
+  const el=document.getElementById(id);
+  if(role==='dir'){
+    items.forEach(v=>{
+      const m=ZONE_META[v];const c=document.createElement('div');
+      c.className=`zchip ${m.cls}${v===S.dir?' on':''}`;
+      c.innerHTML=`<div class="zchip-clock">${m.clock}</div><div class="zchip-t">${v}</div><div class="zchip-s">${m.area}</div>`;
+      c.dataset.v=v;c.dataset.role=role;c.onclick=()=>{S.dir=v;syncChips();};el.appendChild(c);
+    });return;
+  }
+  items.forEach(v=>{
+    const c=document.createElement('div');
+    const isPh=v==='포토스팟',isBus=v==='뚜벅이';
+    c.className='fchip'+(v===S[role]?' on':'')+(isPh?' ph':'')+(role==='trans'?' tr':'');
+    if(isBus)c.innerHTML='<i class="ti ti-walk" style="font-size:13px"></i> 뚜벅이';
+    else if(v==='렌트카')c.innerHTML='<i class="ti ti-car" style="font-size:13px"></i> 렌트카';
+    else c.textContent=v;
+    c.dataset.v=v;c.dataset.role=role;c.onclick=()=>{S[role]=v;syncChips();};el.appendChild(c);
+  });
+}
+mkChips('dir-row',['1~3시','3~6시','6~9시','9~12시'],'dir');
+mkChips('theme-row',['맛집 위주','자연 힐링','가족여행','포토스팟'],'theme');
+mkChips('trans-row',['렌트카','뚜벅이'],'trans');
+function syncChips(){document.querySelectorAll('[data-role]').forEach(c=>c.classList.toggle('on',c.dataset.v===S[c.dataset.role]));}
+
+function setCat(el,cat){
+  document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('on'));el.classList.add('on');
+  const list=document.getElementById('plist');list.innerHTML='';
+  PL[cat].forEach((p,i)=>{
+    const d=document.createElement('div');d.className='pc fu d'+(Math.min(i+1,6));
+    const rkCls=i===0?'r1':i===1?'r2':i===2?'r3':'';
+    d.innerHTML=`
+      <div class="prk ${rkCls}">${i+1}</div>
+      <div class="pthumb" style="background:${p.tc}">${p.e}</div>
+      <div class="pinfo">
+        <div class="pname">${p.n}</div>
+        <div class="pmeta">${p.m}</div>
+        <div class="ptags">
+          ${p.tags.map(t=>`<span class="ptag" style="background:${p.tc};color:${p.oc}">${t}</span>`).join('')}
+          <button class="nmap-btn" onclick="event.stopPropagation();openNmap('${p.n}')"><span class="nmap-n">N</span>지도</button>
+        </div>
+      </div>
+      <div class="pright"><div class="pdist">${p.d}</div><div class="pstar">${p.star}</div></div>`;
+    list.appendChild(d);
+  });
+}
+setCat(document.querySelector('.cbtn.on'),'restaurant');
+
+/* ── 일정 생성 & 렌더 ── */
+const LOADING_MSGS=['Claude AI가 지도를 분석 중...','존 내 최단 경로 계산 중...','테마에 맞는 장소 선별 중...','이동 시간 최적화 중...','왔다갔다 없는 동선 완성 중...'];
+
+async function genSched(){
+  const btn=document.getElementById('gbtn');
+  const st=document.getElementById('t-st').value||'09:00';
+  const et=document.getElementById('t-et').value||'19:00';
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> 생성 중...';
+  showLoading();
+  try{
+    const res=await fetch('/api/schedule',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dir:S.dir,theme:S.theme,trans:S.trans,startTime:st,endTime:et})});
+    if(!res.ok)throw new Error();
+    const data=await res.json();renderResult(data.schedule,st,et);
+  }catch{renderResult(buildLocal(st,et),st,et);}
+  finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles" style="font-size:18px"></i> AI 일정 생성하기';}
+}
+
+function showLoading(){
+  const m=ZONE_META[S.dir];
+  document.getElementById('r-badge').innerHTML='<i class="ti ti-sparkles" style="font-size:11px"></i> AI 생성 중';
+  document.getElementById('r-title').textContent=`${m.clock} ${S.dir} · ${S.theme}`;
+  document.getElementById('r-sub').textContent=`${m.area} 최단 동선 계산 중...`;
+  document.getElementById('r-stats').innerHTML='';
+  document.getElementById('timeline').innerHTML=`
+    <div class="ai-loading">
+      <div class="ai-ring"></div>
+      <div class="ai-loading-t">왔다갔다 없는 최단 동선 생성 중</div>
+      <div class="ai-loading-s" id="loading-msg">${m.area} 지역 내에서<br>효율적인 코스를 계산하고 있어요</div>
+      <div class="ai-dots"><span></span><span></span><span></span></div>
+    </div>`;
+  go('result');
+  let idx=0;const iv=setInterval(()=>{const el=document.getElementById('loading-msg');if(el){el.textContent=LOADING_MSGS[idx%LOADING_MSGS.length];idx++;}else clearInterval(iv);},1200);
+}
+
+function renderResult(schedule,st,et){
+  const isBus=S.trans==='뚜벅이',m=ZONE_META[S.dir];
+  document.getElementById('r-badge').innerHTML='<i class="ti ti-route" style="font-size:11px"></i> 최단 동선 일정';
+  document.getElementById('r-title').textContent=`${m.clock} ${S.dir} · ${S.theme}`;
+  document.getElementById('r-sub').textContent=`${m.area} · ${S.trans} · ${st}~${et}`;
+  document.getElementById('r-stats').innerHTML=`
+    <div class="rst"><div class="n">${schedule.length}</div><div class="l">총 장소</div></div>
+    <div class="rst"><div class="n">${schedule.filter(x=>x.type==='meal').length}</div><div class="l">식사</div></div>
+    <div class="rst"><div class="n">${schedule.filter(x=>x.type==='sight').length}</div><div class="l">관광</div></div>
+    <div class="rst"><div class="n">${schedule.reduce((s,x)=>s+(x.move||0),0)}분</div><div class="l">총이동</div></div>`;
+  const TI={meal:{dot:'dm',ty:'ty-meal',label:'식사',icon:'ti-tools-kitchen-2'},cafe:{dot:'dc',ty:'ty-cafe',label:'카페',icon:'ti-coffee'},sight:{dot:'ds',ty:'ty-sight',label:'관광',icon:'ti-mountain'}};
+  const tl=document.getElementById('timeline');tl.innerHTML='';
+  schedule.forEach((item,i)=>{
+    const ti=TI[item.type]||TI.sight;const mv=item.move||0;
+    const d=document.createElement('div');d.className='tl fu';d.style.animationDelay=(i*.07)+'s';d.style.opacity='0';
+    d.innerHTML=`
+      <div class="tl-l"><div class="tldot ${ti.dot}"></div>${i<schedule.length-1?'<div class="tlconn"></div>':''}</div>
+      <div class="tlcard">
+        <div class="tltime">${item.start} ~ ${item.end}</div>
+        <div class="tlname">${item.name}<span class="tltype ${ti.ty}"><i class="ti ${ti.icon}" style="font-size:10px;margin-right:2px"></i>${ti.label}</span></div>
+        <div class="tldesc">${item.desc} · ${item.stay}분 체류</div>
+        ${item.tip?`<div class="tip-pill"><i class="ti ti-bulb" style="font-size:11px"></i>${item.tip}</div>`:''}
+        ${mv>0?`<div class="tlmv"><i class="ti ti-${isBus?'bus':'car'}" style="font-size:11px"></i> ${isBus?'버스·도보':'이동'} ${mv}분</div>`:''}
+        <button class="tlnmap" onclick="openNmap('${item.name}')"><span style="font-weight:900">N</span>지도에서 보기</button>
+      </div>`;
+    tl.appendChild(d);
+  });
+  document.getElementById('result-scroll').scrollTop=0;go('result');
+}
+
+function copyLink(){navigator.clipboard?.writeText(location.href).then(()=>alert('링크 복사됐어요! 카카오톡에 붙여넣기 하세요 😊')).catch(()=>prompt('링크 복사:',location.href));}
+function shareKakao(){alert('배포 후 Kakao SDK 연동하면 활성화돼요!\n지금은 링크 복사로 공유해주세요 😊');}
+</script>
+</body>
+</html>
