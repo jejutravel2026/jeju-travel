@@ -695,9 +695,55 @@ mkChips('theme-row',['맛집 위주','자연 힐링','가족여행','포토스�
 mkChips('trans-row',['렌트카','뚜벅이'],'trans');
 function syncChips(){document.querySelectorAll('[data-role]').forEach(c=>c.classList.toggle('on',c.dataset.v===S[c.dataset.role]));}
 
-function setCat(el,cat){
-  document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('on'));el.classList.add('on');
-  const list=document.getElementById('plist');list.innerHTML='';
+/* 카테고리별 네이버 검색 키워드 */
+const CAT_QUERY = {
+  restaurant: '제주 맛집',
+  cafe:       '제주 카페',
+  attraction: '제주 관광지',
+  photo:      '제주 포토존 명소',
+  shop:       '제주 기념품 특산품'
+};
+const CAT_COLORS = {
+  restaurant:{tc:'#D8F3DC',oc:'#0F6E56',e:'🍽️'},
+  cafe:      {tc:'#FEF3C7',oc:'#92400E',e:'☕'},
+  attraction:{tc:'#E6F1FB',oc:'#185FA5',e:'🏔️'},
+  photo:     {tc:'#EEEDFE',oc:'#534AB7',e:'📸'},
+  shop:      {tc:'#FCE8E0',oc:'#D85A30',e:'🎁'}
+};
+
+/* 네이버 API 결과로 카드 그리기 */
+function renderNaverPlaces(places, cat) {
+  const list = document.getElementById('plist');
+  list.innerHTML = '';
+  const c = CAT_COLORS[cat] || CAT_COLORS.attraction;
+  places.forEach((p, i) => {
+    const d = document.createElement('div');
+    d.className = 'pc fu d'+(Math.min(i+1,6));
+    const rkCls = i===0?'r1':i===1?'r2':i===2?'r3':'';
+    const addrShort = p.address ? p.address.replace('제주특별자치도','').replace('제주시','제주시').trim().split(' ').slice(0,3).join(' ') : '';
+    const catLabel = p.category ? p.category.split('>').pop().trim() : '';
+    d.innerHTML = `
+      <div class="prk ${rkCls}">${i+1}</div>
+      <div class="pthumb" style="background:${c.tc}">${c.e}</div>
+      <div class="pinfo">
+        <div class="pname">${p.name}</div>
+        <div class="pmeta">${addrShort}</div>
+        <div class="ptags">
+          ${catLabel?`<span class="ptag" style="background:${c.tc};color:${c.oc}">${catLabel}</span>`:''}
+          <button class="nmap-btn" onclick="event.stopPropagation();openNmap('${p.name.replace(/'/g,'')}')"><span class="nmap-n">N</span>지도</button>
+        </div>
+      </div>
+      <div class="pright" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        ${p.tel?`<div style="font-size:10px;color:var(--ts)">${p.tel}</div>`:''}
+      </div>`;
+    list.appendChild(d);
+  });
+}
+
+/* 로컬 데이터 폴백으로 카드 그리기 */
+function renderLocalPlaces(cat) {
+  const list = document.getElementById('plist');
+  list.innerHTML = '';
   PL[cat].forEach((p,i)=>{
     const d=document.createElement('div');d.className='pc fu d'+(Math.min(i+1,6));
     const rkCls=i===0?'r1':i===1?'r2':i===2?'r3':'';
@@ -716,7 +762,36 @@ function setCat(el,cat){
     list.appendChild(d);
   });
 }
-setCat(document.querySelector('.cbtn.on'),'restaurant');
+
+/* 카테고리 탭 클릭 — 네이버 API 호출 */
+async function setCat(el, cat) {
+  document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  const list = document.getElementById('plist');
+
+  // 로딩 표시
+  list.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:32px 20px;gap:12px">
+      <div class="ai-ring" style="width:36px;height:36px;border-width:3px"></div>
+      <div style="font-size:12px;color:var(--ts)">네이버에서 검색 중...</div>
+    </div>`;
+
+  try {
+    const query = CAT_QUERY[cat] || '제주 명소';
+    const res = await fetch(`/api/places?query=${encodeURIComponent(query)}&display=15`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    if (data.places && data.places.length > 0) {
+      renderNaverPlaces(data.places, cat);
+    } else {
+      renderLocalPlaces(cat);
+    }
+  } catch {
+    // API 실패 시 로컬 데이터 사용
+    renderLocalPlaces(cat);
+  }
+}
+setCat(document.querySelector('.cbtn.on'), 'restaurant');
 
 /* ── 일정 생성 & 렌더 ── */
 const LOADING_MSGS=['Claude AI가 지도를 분석 중...','존 내 최단 경로 계산 중...','테마에 맞는 장소 선별 중...','이동 시간 최적화 중...','왔다갔다 없는 동선 완성 중...'];
