@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>제주 로컬 가이드 — Local's Pick</title>
+<title>ì ì£¼ ë¡ì»¬ ê°ì´ë â Local's Pick</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -33,9 +33,9 @@ a{text-decoration:none}
 <script type="text/babel">
 const {useState,useEffect,useRef,useCallback} = React;
 
-/* ══════════════════════════════════════════
-   🎵  SOUND ENGINE  (Web Audio API)
-══════════════════════════════════════════ */
+/* ââââââââââââââââââââââââââââââââââââââââââ
+   ðµ  SOUND ENGINE  (Web Audio API)
+ââââââââââââââââââââââââââââââââââââââââââ */
 const SFX = (() => {
   let _ctx = null;
   const get = () => {
@@ -117,9 +117,9 @@ const SFX = (() => {
   return {tick,stamp,coin,flip,err,pop};
 })();
 
-/* ══════════════════════════════════════════
-   ★  SEED DATA  — GitHub 저장 시 업데이트됨
-══════════════════════════════════════════ */
+/* ââââââââââââââââââââââââââââââââââââââââââ
+   â  SEED DATA  â GitHub ì ì¥ ì ìë°ì´í¸ë¨
+ââââââââââââââââââââââââââââââââââââââââââ */
 // __PLACES_DATA_START__
 const SEED_PLACES = [];
 // __PLACES_DATA_END__
@@ -127,17 +127,17 @@ const SEED_PLACES = [];
 const ADMIN_PW = "jeju0000";
 
 const CATS = [
-  {key:"all",  label:"전체",   stamp:"ALL",    color:"#3D2B1A", bg:"#E8D9BE", border:"#8B6840"},
-  {key:"식당",  label:"식당",   stamp:"DINE",   color:"#7C1A1A", bg:"#F5E8E8", border:"#7C1A1A"},
-  {key:"카페",  label:"카페",   stamp:"CAFÉ",   color:"#5C3A1A", bg:"#F5EDE0", border:"#5C3A1A"},
-  {key:"숙소",  label:"숙소",   stamp:"INN",    color:"#1A3A5C", bg:"#E0ECF5", border:"#1A3A5C"},
-  {key:"체험",  label:"체험",   stamp:"TOUR",   color:"#1A4A1A", bg:"#E0F0E0", border:"#1A4A1A"},
+  {key:"all",  label:"ì ì²´",   stamp:"ALL",    color:"#3D2B1A", bg:"#E8D9BE", border:"#8B6840"},
+  {key:"ìë¹",  label:"ìë¹",   stamp:"DINE",   color:"#7C1A1A", bg:"#F5E8E8", border:"#7C1A1A"},
+  {key:"ì¹´í",  label:"ì¹´í",   stamp:"CAFÃ",   color:"#5C3A1A", bg:"#F5EDE0", border:"#5C3A1A"},
+  {key:"ìì",  label:"ìì",   stamp:"INN",    color:"#1A3A5C", bg:"#E0ECF5", border:"#1A3A5C"},
+  {key:"ì²´í",  label:"ì²´í",   stamp:"TOUR",   color:"#1A4A1A", bg:"#E0F0E0", border:"#1A4A1A"},
 ];
 const getCat = k => CATS.find(c=>c.key===k)||CATS[1];
 
-/* ══════════════════════════════════════════
-   🎨  GLOBAL STYLES
-══════════════════════════════════════════ */
+/* ââââââââââââââââââââââââââââââââââââââââââ
+   ð¨  GLOBAL STYLES
+ââââââââââââââââââââââââââââââââââââââââââ */
 const CSS = `
   @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
   @keyframes stampIn{
@@ -154,7 +154,7 @@ const CSS = `
 
   .wrap{max-width:440px;margin:0 auto;padding-bottom:110px}
 
-  /* ── MASTHEAD ── */
+  /* ââ MASTHEAD ââ */
   .masthead{
     background:#1E1208;
     padding:0 0 8px;
@@ -202,7 +202,7 @@ const CSS = `
   .mast-btn.act{color:#F5D5A0;border-color:#C8A000;background:rgba(200,160,0,.12)}
   .mast-btn:active{transform:scale(.93)}
 
-  /* ── CATEGORY TABS (STAMPS) ── */
+  /* ââ CATEGORY TABS (STAMPS) ââ */
   .cat-bar{
     display:flex;gap:0;overflow-x:auto;
     padding:12px 16px 0;scrollbar-width:none;
@@ -227,10 +227,10 @@ const CSS = `
   .cat-underline{height:3px;width:100%;margin-top:6px;border-radius:0;transition:.15s;opacity:0}
   .cat-stamp.on .cat-underline{opacity:1}
 
-  /* ── BODY ── */
+  /* ââ BODY ââ */
   .body{padding:14px 16px}
 
-  /* ── AD BANNER ── */
+  /* ââ AD BANNER ââ */
   .ad-banner{
     background:linear-gradient(135deg,#2A1A0A,#3D2B1A);
     border:2px solid #8B6840;border-radius:4px;
@@ -251,14 +251,14 @@ const CSS = `
   .ad-text .ad-sub{font-size:11px;color:#A08060;margin-top:2px}
   .ad-arrow{margin-left:auto;font-size:18px;color:#C8A000;flex-shrink:0}
 
-  /* ── DIVIDER ── */
+  /* ââ DIVIDER ââ */
   .divider{
     display:flex;align-items:center;gap:10px;margin:16px 0;
   }
   .divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,#8B6840 30%,#8B6840 70%,transparent)}
   .divider-star{font-size:12px;color:#C8A000;font-family:'Special Elite',cursive;letter-spacing:3px}
 
-  /* ── SECTION HEADER ── */
+  /* ââ SECTION HEADER ââ */
   .sec-hdr{
     display:flex;align-items:baseline;gap:10px;margin-bottom:12px;
   }
@@ -270,7 +270,7 @@ const CSS = `
     border:1px solid #8B6840;border-radius:2px;padding:1px 6px;
   }
 
-  /* ── PLACE CARD ── */
+  /* ââ PLACE CARD ââ */
   .card{
     background:#FBF7EF;
     border:2px solid #C8A870;border-radius:3px;
@@ -339,7 +339,7 @@ const CSS = `
   .card-fav-btn.on{background:#FFF0E0;border-color:#C87030;animation:heartBeat .3s ease}
   .card-fav-btn:active{transform:scale(.85)}
 
-  /* ── STAMP OVERLAY (save animation) ── */
+  /* ââ STAMP OVERLAY (save animation) ââ */
   .stamp-overlay{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     pointer-events:none;z-index:10;
@@ -353,7 +353,7 @@ const CSS = `
   }
   .stamp-mark.show{animation:stampIn .5s cubic-bezier(.17,.67,.35,1.3) forwards}
 
-  /* ── CARD FOOTER ── */
+  /* ââ CARD FOOTER ââ */
   .card-foot{
     display:flex;align-items:center;gap:8px;
     margin-top:14px;padding-top:12px;
@@ -375,7 +375,7 @@ const CSS = `
   }
   .detail-btn:hover{background:#F0E6CE}
 
-  /* ── ADMIN BUTTONS ── */
+  /* ââ ADMIN BUTTONS ââ */
   .adm-btns{display:flex;gap:6px}
   .adm-btn{
     padding:7px 11px;border-radius:3px;
@@ -386,7 +386,7 @@ const CSS = `
   .adm-btn.del{border-color:#C87070;background:#FFF0F0;color:#7C1A1A}
   .adm-btn:active{transform:scale(.93)}
 
-  /* ── ADMIN PANEL ── */
+  /* ââ ADMIN PANEL ââ */
   .adm-panel{
     background:#FBF7EF;
     border:2px solid #C8A000;border-radius:3px;
@@ -448,7 +448,7 @@ const CSS = `
     cursor:pointer;transition:.15s;
   }
 
-  /* ── EMPTY STATE ── */
+  /* ââ EMPTY STATE ââ */
   .empty{
     text-align:center;padding:64px 24px;
     font-family:'Special Elite',cursive;
@@ -469,7 +469,7 @@ const CSS = `
   .empty-title{font-size:18px;color:#3D2B1A;letter-spacing:1px;margin-bottom:6px}
   .empty-sub{font-size:12px;color:#8B6840;line-height:1.8;font-family:'Courier Prime',monospace}
 
-  /* ── BUSINESS CTA ── */
+  /* ââ BUSINESS CTA ââ */
   .biz-cta{
     background:linear-gradient(135deg,#1E1208,#3D2B1A);
     border:2px solid #8B6840;border-radius:3px;
@@ -478,7 +478,7 @@ const CSS = `
     text-align:center;
   }
   .biz-cta::before{
-    content:'★ ADVERTISE WITH US ★';
+    content:'â ADVERTISE WITH US â';
     position:absolute;top:0;left:0;right:0;
     background:#C8A000;color:#1E1208;
     font-family:'Special Elite',cursive;font-size:9px;letter-spacing:3px;
@@ -495,7 +495,7 @@ const CSS = `
   }
   .biz-btn:active{transform:scale(.96);opacity:.9}
 
-  /* ── SAVED BANNER ── */
+  /* ââ SAVED BANNER ââ */
   .saved-banner{
     background:linear-gradient(135deg,#1A3A1A,#1A4A1A);
     border:2px solid #4A8A4A;border-radius:3px;
@@ -505,7 +505,7 @@ const CSS = `
   .saved-title{font-size:17px;color:#C8E8C8;letter-spacing:1px;margin-bottom:4px}
   .saved-sub{font-size:11px;color:#4A8A4A;font-family:'Courier Prime',monospace;letter-spacing:.5px}
 
-  /* ── FAB ── */
+  /* ââ FAB ââ */
   .fab{
     position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
     background:#1E1208;color:#F5D5A0;border:2px solid #C8A000;border-radius:3px;
@@ -522,7 +522,7 @@ const CSS = `
     font-family:'Noto Sans KR',sans-serif;
   }
 
-  /* ── MODAL ── */
+  /* ââ MODAL ââ */
   .overlay{
     position:fixed;inset:0;background:rgba(10,5,0,.7);z-index:400;
     display:flex;align-items:center;justify-content:center;padding:24px;
@@ -560,7 +560,7 @@ const CSS = `
   }
   .pw-inp:focus{border-color:#8B6840;background:#FBF7EF}
 
-  /* ── TOAST ── */
+  /* ââ TOAST ââ */
   .toast{
     position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
     background:#1E1208;color:#F5D5A0;border:1.5px solid #C8A000;
@@ -571,7 +571,7 @@ const CSS = `
     animation:fadeUp .2s ease;
   }
 
-  /* ── SCROLL TO TOP ── */
+  /* ââ SCROLL TO TOP ââ */
   .back-top{
     position:fixed;bottom:90px;right:16px;
     width:40px;height:40px;
@@ -585,9 +585,9 @@ const CSS = `
   .back-top.show{opacity:1;pointer-events:all}
 `;
 
-/* ═══════════════════════════════════════════════
+/* âââââââââââââââââââââââââââââââââââââââââââââââ
    APP COMPONENT
-═══════════════════════════════════════════════ */
+âââââââââââââââââââââââââââââââââââââââââââââââ */
 function App(){
   const [places, setPlaces] = useState(()=>{
     try{
@@ -606,14 +606,14 @@ function App(){
   const [modal,  setModal]  = useState(null);
   const [delId,  setDelId]  = useState(null);
   const [pw,     setPw]     = useState('');
-  const [form,   setForm]   = useState({name:'',category:'식당',desc:'',link:'',bookingLink:'',isFeatured:false,isSponsored:false});
+  const [form,   setForm]   = useState({name:'',category:'ìë¹',desc:'',link:'',bookingLink:'',isFeatured:false,isSponsored:false});
   const [editId, setEditId] = useState(null);
   const [toast,  setToast]  = useState('');
   const [stamps, setStamps] = useState({});
   const [scroll, setScroll] = useState(0);
   const toastRef = useRef();
 
-  /* ── persist ── */
+  /* ââ persist ââ */
   useEffect(()=>{ localStorage.setItem('jlg_places_v2',JSON.stringify(places)); },[places]);
   useEffect(()=>{ localStorage.setItem('jlg_favs_v2',JSON.stringify([...favs])); },[favs]);
   useEffect(()=>{
@@ -622,14 +622,14 @@ function App(){
     return()=>window.removeEventListener('scroll',fn);
   },[]);
 
-  /* ── toast ── */
+  /* ââ toast ââ */
   function showToast(msg){
     clearTimeout(toastRef.current);
     setToast(msg);
     toastRef.current=setTimeout(()=>setToast(''),2500);
   }
 
-  /* ── stamp animation on fav ── */
+  /* ââ stamp animation on fav ââ */
   function toggleFav(id){
     SFX.stamp();
     setFavs(prev=>{
@@ -645,10 +645,10 @@ function App(){
     setTimeout(()=>setStamps(p=>({...p,[id]:false})),700);
   }
 
-  /* ── add/edit ── */
+  /* ââ add/edit ââ */
   function handleSubmit(e){
     e.preventDefault();
-    if(!form.name.trim()||!form.link.trim()){SFX.err();return showToast('장소명과 링크는 필수!');}
+    if(!form.name.trim()||!form.link.trim()){SFX.err();return showToast('ì¥ìëªê³¼ ë§í¬ë íì!');}
     let link=form.link.trim();
     if(!/^https?:\/\//.test(link)) link='https://'+link;
     let bookingLink=form.bookingLink.trim();
@@ -657,24 +657,45 @@ function App(){
     if(editId){
       setPlaces(p=>p.map(x=>x.id===editId?{...x,...form,link,bookingLink}:x));
       setEditId(null);
-      showToast('★ 수정 완료');
+      showToast('â ìì  ìë£');
     } else {
       setPlaces(p=>[...p,{...form,link,bookingLink,id:`p${Date.now()}`,at:Date.now()}]);
-      showToast('★ 추가 완료');
+      showToast('â ì¶ê° ìë£');
     }
-    setForm({name:'',category:'식당',desc:'',link:'',bookingLink:'',isFeatured:false,isSponsored:false});
+    setForm({name:'',category:'ìë¹',desc:'',link:'',bookingLink:'',isFeatured:false,isSponsored:false});
   }
 
-  /* ── delete ── */
+  /* ââ delete ââ */
   function doDelete(){
     SFX.err();
     setPlaces(p=>p.filter(x=>x.id!==delId));
     setFavs(p=>{const n=new Set(p);n.delete(delId);return n;});
     setModal(null);setDelId(null);
-    showToast('삭제됨');
+    showToast('ì­ì ë¨');
   }
 
-  /* ── export HTML for GitHub ── */
+  const [publishing, setPublishing] = useState(false);
+
+  /* ââ ë¼ì´ë¸ ë°í (GitHub ìë ìë°ì´í¸) ââ */
+  async function publishToLive() {
+    SFX.coin();
+    setPublishing(true);
+    showToast('ð ë°í ì¤...');
+    try {
+      const res = await fetch('/api/admin', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ password: ADMIN_PW, places }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'ë°í ì¤í¨');
+      showToast('â ë°í ìë£! 30ì´ í ì ì©ë¼ì');
+    } catch (e) {
+      SFX.err();
+      showToast('â ' + e.message);
+    }
+    setPublishing(false);
+  }
   function exportHTML(){
     SFX.coin();
     const src=document.documentElement.outerHTML;
@@ -689,16 +710,16 @@ function App(){
     a.href=url;a.download='index.html';a.click();
     URL.revokeObjectURL(url);
     setModal(null);
-    showToast('📥 index.html 다운로드 — GitHub에 올려주세요!');
+    showToast('ð¥ index.html ë¤ì´ë¡ë â GitHubì ì¬ë ¤ì£¼ì¸ì!');
   }
 
-  /* ── login ── */
+  /* ââ login ââ */
   function doLogin(){
-    if(pw===ADMIN_PW){setIsAdm(true);setModal(null);setPw('');SFX.coin();showToast('★ 관리자 모드');}
-    else{setPw('');SFX.err();showToast('비밀번호 오류');}
+    if(pw===ADMIN_PW){setIsAdm(true);setModal(null);setPw('');SFX.coin();showToast('â ê´ë¦¬ì ëª¨ë');}
+    else{setPw('');SFX.err();showToast('ë¹ë°ë²í¸ ì¤ë¥');}
   }
 
-  /* ── start edit ── */
+  /* ââ start edit ââ */
   function startEdit(p){
     SFX.tick();
     setForm({name:p.name,category:p.category,desc:p.desc||'',link:p.link,bookingLink:p.bookingLink||'',isFeatured:!!p.isFeatured,isSponsored:!!p.isSponsored});
@@ -706,18 +727,18 @@ function App(){
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
-  /* ── filters ── */
+  /* ââ filters ââ */
   const filtered  = tab==='all'?places:places.filter(p=>p.category===tab);
   const savedList = places.filter(p=>favs.has(p.id));
   const shown     = view==='saved'?savedList:filtered;
   const featured  = shown.filter(p=>p.isFeatured);
   const regular   = shown.filter(p=>!p.isFeatured);
 
-  /* ── today's edition ── */
+  /* ââ today's edition ââ */
   const today = new Date();
-  const edition = `Vol.${today.getFullYear().toString().slice(2)}${String(today.getMonth()+1).padStart(2,'0')} · Issue ${String(today.getDate()).padStart(2,'0')}`;
+  const edition = `Vol.${today.getFullYear().toString().slice(2)}${String(today.getMonth()+1).padStart(2,'0')} Â· Issue ${String(today.getDate()).padStart(2,'0')}`;
 
-  /* ── RENDER CARD ── */
+  /* ââ RENDER CARD ââ */
   const renderCard = (p,i) => {
     const c=getCat(p.category);
     const chked=favs.has(p.id);
@@ -731,7 +752,7 @@ function App(){
             <div className="card-stamp-wrap">
               <div className="card-stamp" style={{borderColor:c.border,background:c.bg,color:c.color}}>
                 <div className="card-stamp-icon">
-                  {c.key==='식당'?'🍽':c.key==='카페'?'☕':c.key==='숙소'?'🏡':'🎯'}
+                  {c.key==='ìë¹'?'ð½':c.key==='ì¹´í'?'â':c.key==='ìì'?'ð¡':'ð¯'}
                 </div>
                 <div className="card-stamp-text" style={{color:c.border}}>{c.stamp}</div>
               </div>
@@ -743,13 +764,13 @@ function App(){
                   {p.category}
                 </span>
                 {p.isSponsored&&<span className="sponsored-tag">AD</span>}
-                {p.isFeatured&&<span className="card-tag" style={{borderColor:'#C8A000',color:'#C8A000',background:'#FFF8E0'}}>★ PICK</span>}
+                {p.isFeatured&&<span className="card-tag" style={{borderColor:'#C8A000',color:'#C8A000',background:'#FFF8E0'}}>â PICK</span>}
               </div>
               {p.desc&&<div className="card-desc">{p.desc}</div>}
             </div>
             <button className={`card-fav-btn ${chked?'on':''}`}
               onClick={()=>toggleFav(p.id)}>
-              {chked?'♥':'♡'}
+              {chked?'â¥':'â¡'}
             </button>
           </div>
           <div className="card-foot">
@@ -757,27 +778,27 @@ function App(){
               <a href={p.bookingLink} target="_blank" rel="noopener noreferrer" style={{flex:1}}>
                 <button className="info-btn book-btn" style={{width:'100%'}}
                   onClick={()=>SFX.tick()}>
-                  🔖 지금 예약하기
+                  ð ì§ê¸ ìì½íê¸°
                 </button>
               </a>
             ):(
               <a href={p.link} target="_blank" rel="noopener noreferrer" style={{flex:1}}>
                 <button className="info-btn detail-btn" style={{width:'100%'}}
                   onClick={()=>SFX.tick()}>
-                  ↗ 관련정보 보기
+                  â ê´ë ¨ì ë³´ ë³´ê¸°
                 </button>
               </a>
             )}
             {p.bookingLink&&(
               <a href={p.link} target="_blank" rel="noopener noreferrer">
                 <button className="info-btn detail-btn" style={{padding:'10px 14px'}}
-                  onClick={()=>SFX.tick()}>↗</button>
+                  onClick={()=>SFX.tick()}>â</button>
               </a>
             )}
             {isAdm&&(
               <div className="adm-btns">
-                <button className="adm-btn" onClick={()=>startEdit(p)}>수정</button>
-                <button className="adm-btn del" onClick={()=>{SFX.tick();setDelId(p.id);setModal('delete')}}>삭제</button>
+                <button className="adm-btn" onClick={()=>startEdit(p)}>ìì </button>
+                <button className="adm-btn del" onClick={()=>{SFX.tick();setDelId(p.id);setModal('delete')}}>ì­ì </button>
               </div>
             )}
           </div>
@@ -801,16 +822,16 @@ function App(){
 
       {/* SCROLL TO TOP */}
       <button className={`back-top ${scroll>300?'show':''}`}
-        onClick={()=>{window.scrollTo({top:0,behavior:'smooth'});SFX.tick();}}>↑</button>
+        onClick={()=>{window.scrollTo({top:0,behavior:'smooth'});SFX.tick();}}>â</button>
 
       {/* MODALS */}
       {modal==='login'&&(
         <div className="overlay" onClick={()=>{setModal(null);setPw('')}}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-hdr">🔐 ADMIN ACCESS</div>
+            <div className="modal-hdr">ð ADMIN ACCESS</div>
             <div className="modal-body">
-              <p>관리자 비밀번호를 입력하세요.</p>
-              <input className="pw-inp" type="password" placeholder="••••••••"
+              <p>ê´ë¦¬ì ë¹ë°ë²í¸ë¥¼ ìë ¥íì¸ì.</p>
+              <input className="pw-inp" type="password" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
                 value={pw} onChange={e=>setPw(e.target.value)}
                 onKeyDown={e=>e.key==='Enter'&&doLogin()} autoFocus/>
               <div className="modal-btns">
@@ -824,9 +845,9 @@ function App(){
       {modal==='delete'&&(
         <div className="overlay" onClick={()=>setModal(null)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-hdr">⚠ DELETE ENTRY</div>
+            <div className="modal-hdr">â  DELETE ENTRY</div>
             <div className="modal-body">
-              <p>삭제하면 복구할 수 없어요. 계속할까요?</p>
+              <p>ì­ì íë©´ ë³µêµ¬í  ì ìì´ì. ê³ìí ê¹ì?</p>
               <div className="modal-btns">
                 <button className="m-sec" onClick={()=>setModal(null)}>CANCEL</button>
                 <button className="m-pri" style={{background:'#7C1A1A',borderColor:'#7C1A1A'}} onClick={doDelete}>DELETE</button>
@@ -838,12 +859,12 @@ function App(){
       {modal==='export'&&(
         <div className="overlay" onClick={()=>setModal(null)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-hdr">📤 PUBLISH TO GITHUB</div>
+            <div className="modal-hdr">ð¤ PUBLISH TO GITHUB</div>
             <div className="modal-body">
-              <p>현재 장소 목록이 담긴 <b>index.html</b>을 다운로드해요. 다운받아서 GitHub에 올리면 모든 방문자가 볼 수 있어요!</p>
+              <p>íì¬ ì¥ì ëª©ë¡ì´ ë´ê¸´ <b>index.html</b>ì ë¤ì´ë¡ëí´ì. ë¤ì´ë°ìì GitHubì ì¬ë¦¬ë©´ ëª¨ë  ë°©ë¬¸ìê° ë³¼ ì ìì´ì!</p>
               <div className="modal-btns">
                 <button className="m-sec" onClick={()=>setModal(null)}>CANCEL</button>
-                <button className="m-pri" onClick={exportHTML}>📥 DOWNLOAD</button>
+                <button className="m-pri" onClick={exportHTML}>ð¥ DOWNLOAD</button>
               </div>
             </div>
           </div>
@@ -852,19 +873,19 @@ function App(){
       {modal==='biz'&&(
         <div className="overlay" onClick={()=>setModal(null)}>
           <div className="modal" onClick={e=>e.stopPropagation()}>
-            <div className="modal-hdr">★ 업체 등록 문의</div>
+            <div className="modal-hdr">â ìì²´ ë±ë¡ ë¬¸ì</div>
             <div className="modal-body">
-              <p>리라 가이드에 내 업체를 등록하고 싶으시다면 아래 이메일로 문의해주세요.<br/><br/>
-              📧 <b>riradpt@naver.com</b></p>
+              <p>ë¦¬ë¼ ê°ì´ëì ë´ ìì²´ë¥¼ ë±ë¡íê³  ì¶ì¼ìë¤ë©´ ìë ì´ë©ì¼ë¡ ë¬¸ìí´ì£¼ì¸ì.<br/><br/>
+              ð§ <b>riradpt@naver.com</b></p>
               <div className="modal-btns">
-                <button className="m-pri" onClick={()=>setModal(null)}>확인</button>
+                <button className="m-pri" onClick={()=>setModal(null)}>íì¸</button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ═══════ APP ═══════ */}
+      {/* âââââââ APP âââââââ */}
       <div className="wrap">
         {/* MASTHEAD */}
         <div className="masthead">
@@ -873,14 +894,14 @@ function App(){
             <div className="ticker-inner">
               {[...Array(3)].map((_,i)=>(
                 <span key={i} style={{display:'flex',alignItems:'center'}}>
-                  <span className="ticker-item">리라 가이드</span>
-                  <span className="ticker-sep">✦</span>
-                  <span className="ticker-item">리라가 추천하는 제주</span>
-                  <span className="ticker-sep">✦</span>
+                  <span className="ticker-item">ë¦¬ë¼ ê°ì´ë</span>
+                  <span className="ticker-sep">â¦</span>
+                  <span className="ticker-item">ë¦¬ë¼ê° ì¶ì²íë ì ì£¼</span>
+                  <span className="ticker-sep">â¦</span>
                   <span className="ticker-item">Rira's Pick</span>
-                  <span className="ticker-sep">✦</span>
-                  <span className="ticker-item">식당 · 카페 · 숙소 · 체험</span>
-                  <span className="ticker-sep">✦</span>
+                  <span className="ticker-sep">â¦</span>
+                  <span className="ticker-item">ìë¹ Â· ì¹´í Â· ìì Â· ì²´í</span>
+                  <span className="ticker-sep">â¦</span>
                 </span>
               ))}
             </div>
@@ -898,17 +919,21 @@ function App(){
             <div className="mast-btns">
               <button className={`mast-btn ${view==='saved'?'act':'sec'}`}
                 onClick={()=>{SFX.flip();setView(view==='saved'?'main':'saved');}}>
-                {view==='saved'?'◁ BACK':'♥ SAVED'}
+                {view==='saved'?'â BACK':'â¥ SAVED'}
               </button>
               {isAdm
                 ?<>
-                  <button className="mast-btn act" onClick={()=>setModal('export')}
-                    style={{borderColor:'#4A8A4A',color:'#4A8A4A'}}>
-                    📤
+                  <button
+                    className={`mast-btn act ${publishing?'publishing':''}`}
+                    style={{borderColor:'#4A8A4A',color:publishing?'#A08060':'#4A8A4A',minWidth:60}}
+                    onClick={publishToLive}
+                    disabled={publishing}
+                  >
+                    {publishing?'ë°íì¤...':'ð ë°í'}
                   </button>
-                  <button className="mast-btn sec" onClick={()=>{SFX.tick();setIsAdm(false);}}>✕</button>
+                  <button className="mast-btn sec" onClick={()=>{SFX.tick();setIsAdm(false);}}>â</button>
                 </>
-                :<button className="mast-btn sec" onClick={()=>{SFX.tick();setModal('login');}}>🔐</button>
+                :<button className="mast-btn sec" onClick={()=>{SFX.tick();setModal('login');}}>ð</button>
               }
             </div>
           </div>
@@ -945,13 +970,20 @@ function App(){
               <div className="adm-panel-body">
                 <div className="adm-toolbar">
                   <div className="adm-title">{editId?'EDIT ENTRY':'NEW ENTRY'}</div>
-                  <button className="export-btn" onClick={()=>setModal('export')}>📤 PUBLISH</button>
+                  <button
+                    className="export-btn"
+                    style={{background:publishing?'#6A8A6A':'#1A4A1A',opacity:publishing?.7:1}}
+                    onClick={publishToLive}
+                    disabled={publishing}
+                  >
+                    {publishing?'â³ ë°í ì¤...':'ð ë¼ì´ë¸ ë°í'}
+                  </button>
                 </div>
                 <form onSubmit={handleSubmit}>
                   <div className="field-row">
                     <div className="field" style={{flex:2}}>
                       <label>Place Name *</label>
-                      <input placeholder="장소명" value={form.name}
+                      <input placeholder="ì¥ìëª" value={form.name}
                         onChange={e=>setForm({...form,name:e.target.value})} required/>
                     </div>
                     <div className="field" style={{flex:1}}>
@@ -962,36 +994,36 @@ function App(){
                     </div>
                   </div>
                   <div className="field">
-                    <label>Description (선택)</label>
-                    <textarea placeholder="한 줄 소개. 주차 여부, 분위기, 추천 메뉴 등"
+                    <label>Description (ì í)</label>
+                    <textarea placeholder="í ì¤ ìê°. ì£¼ì°¨ ì¬ë¶, ë¶ìê¸°, ì¶ì² ë©ë´ ë±"
                       value={form.desc} onChange={e=>setForm({...form,desc:e.target.value})}/>
                   </div>
                   <div className="field">
-                    <label>Main Link * (네이버 지도 / 인스타 / 홈페이지)</label>
+                    <label>Main Link * (ë¤ì´ë² ì§ë / ì¸ì¤í / ííì´ì§)</label>
                     <input placeholder="https://..." value={form.link}
                       onChange={e=>setForm({...form,link:e.target.value})} required/>
                   </div>
                   <div className="field">
-                    <label>예약 링크 (선택 — 수익화용 제휴 링크)</label>
-                    <input placeholder="https://... (야놀자, 에어비앤비, 클래스101 등)"
+                    <label>ìì½ ë§í¬ (ì í â ììµíì© ì í´ ë§í¬)</label>
+                    <input placeholder="https://... (ì¼ëì, ìì´ë¹ì¤ë¹, í´ëì¤101 ë±)"
                       value={form.bookingLink} onChange={e=>setForm({...form,bookingLink:e.target.value})}/>
                   </div>
                   <div className="check-row">
                     <input type="checkbox" id="isFeat" checked={form.isFeatured}
                       onChange={e=>setForm({...form,isFeatured:e.target.checked})}/>
-                    <label htmlFor="isFeat">★ FEATURED — 상단 노출 (광고 유료 등록)</label>
+                    <label htmlFor="isFeat">â FEATURED â ìë¨ ë¸ì¶ (ê´ê³  ì ë£ ë±ë¡)</label>
                   </div>
                   <div className="check-row" style={{marginBottom:'12px'}}>
                     <input type="checkbox" id="isSpon" checked={form.isSponsored}
                       onChange={e=>setForm({...form,isSponsored:e.target.checked})}/>
-                    <label htmlFor="isSpon">AD — 스폰서 표시 (협찬 업체)</label>
+                    <label htmlFor="isSpon">AD â ì¤í°ì íì (íì°¬ ìì²´)</label>
                   </div>
                   <button type="submit" className="submit-btn" onClick={()=>{}}>
-                    {editId?'✦ UPDATE ENTRY':'✦ ADD ENTRY'}
+                    {editId?'â¦ UPDATE ENTRY':'â¦ ADD ENTRY'}
                   </button>
                   {editId&&(
                     <button type="button" className="cancel-btn"
-                      onClick={()=>{SFX.tick();setEditId(null);setForm({name:'',category:'식당',desc:'',link:'',bookingLink:'',isFeatured:false,isSponsored:false});}}>
+                      onClick={()=>{SFX.tick();setEditId(null);setForm({name:'',category:'ìë¹',desc:'',link:'',bookingLink:'',isFeatured:false,isSponsored:false});}}>
                       CANCEL
                     </button>
                   )}
@@ -1003,37 +1035,37 @@ function App(){
           {/* TOP AD BANNER */}
           {view!=='saved'&&(
             <div className="ad-banner" onClick={()=>{SFX.tick();setModal('biz');}}>
-              <div className="ad-ico">📋</div>
+              <div className="ad-ico">ð</div>
               <div className="ad-text">
-                <div className="ad-tag">광고 문의</div>
-                <div className="ad-msg">내 업체를 리라 가이드에 등록하세요</div>
+                <div className="ad-tag">ê´ê³  ë¬¸ì</div>
+                <div className="ad-msg">ë´ ìì²´ë¥¼ ë¦¬ë¼ ê°ì´ëì ë±ë¡íì¸ì</div>
                 <div className="ad-sub">riradpt@naver.com</div>
               </div>
-              <div className="ad-arrow">›</div>
+              <div className="ad-arrow">âº</div>
             </div>
           )}
 
           {/* SAVED BANNER */}
           {view==='saved'&&savedList.length>0&&(
             <div className="saved-banner">
-              <div className="saved-title">♥ MY PICKS</div>
-              <div className="saved-sub">카드 하트를 다시 누르면 저장 해제돼요</div>
+              <div className="saved-title">â¥ MY PICKS</div>
+              <div className="saved-sub">ì¹´ë íí¸ë¥¼ ë¤ì ëë¥´ë©´ ì ì¥ í´ì ë¼ì</div>
             </div>
           )}
 
           {shown.length===0?(
             <div className="empty">
               <div className="empty-frame">
-                {view==='saved'?'♥':tab==='식당'?'🍽':tab==='카페'?'☕':tab==='숙소'?'🏡':tab==='체험'?'🎯':'✦'}
+                {view==='saved'?'â¥':tab==='ìë¹'?'ð½':tab==='ì¹´í'?'â':tab==='ìì'?'ð¡':tab==='ì²´í'?'ð¯':'â¦'}
               </div>
               <div className="empty-title">
                 {view==='saved'?'NO SAVED PICKS':`NO ${tab==='all'?'ENTRIES':tab.toUpperCase()} YET`}
               </div>
               <div className="empty-sub">
                 {view==='saved'
-                  ?'카드의 ♡ 버튼을 눌러\n마음에 드는 장소를 저장해보세요'
-                  :isAdm?'위에서 새 장소를 추가해보세요!'
-                  :'곧 업데이트될 예정이에요'}
+                  ?'ì¹´ëì â¡ ë²í¼ì ëë¬\në§ìì ëë ì¥ìë¥¼ ì ì¥í´ë³´ì¸ì'
+                  :isAdm?'ììì ì ì¥ìë¥¼ ì¶ê°í´ë³´ì¸ì!'
+                  :'ê³§ ìë°ì´í¸ë  ìì ì´ìì'}
               </div>
             </div>
           ):(
@@ -1042,13 +1074,13 @@ function App(){
               {featured.length>0&&(
                 <>
                   <div className="sec-hdr">
-                    <div className="sec-title">★ FEATURED PICKS</div>
+                    <div className="sec-title">â FEATURED PICKS</div>
                     <div className="sec-count">{featured.length}</div>
                   </div>
                   {featured.map((p,i)=>renderCard(p,i))}
                   <div className="divider">
                     <div className="divider-line"/>
-                    <div className="divider-star">✦ ✦ ✦</div>
+                    <div className="divider-star">â¦ â¦ â¦</div>
                     <div className="divider-line"/>
                   </div>
                 </>
@@ -1069,14 +1101,14 @@ function App(){
               {view!=='saved'&&regular.length>0&&(
                 <div className="biz-cta">
                   <div className="biz-cta-body">
-                    <div className="biz-title">내 업체를 소개하고 싶다면?</div>
+                    <div className="biz-title">ë´ ìì²´ë¥¼ ìê°íê³  ì¶ë¤ë©´?</div>
                     <div className="biz-desc">
-                      리라 가이드에 등록하고 더 많은 여행자에게<br/>
-                      직접 운영하는 식당 · 카페 · 숙소를 알려보세요.<br/>
-                      광고 문의: riradpt@naver.com
+                      ë¦¬ë¼ ê°ì´ëì ë±ë¡íê³  ë ë§ì ì¬íììê²<br/>
+                      ì§ì  ì´ìíë ìë¹ Â· ì¹´í Â· ììë¥¼ ìë ¤ë³´ì¸ì.<br/>
+                      ê´ê³  ë¬¸ì: riradpt@naver.com
                     </div>
                     <button className="biz-btn" onClick={()=>{SFX.coin();setModal('biz');}}>
-                      ★ 등록 문의하기
+                      â ë±ë¡ ë¬¸ìíê¸°
                     </button>
                   </div>
                 </div>
@@ -1089,13 +1121,13 @@ function App(){
       {/* FAB */}
       {view!=='saved'&&favs.size>0&&(
         <button className="fab" onClick={()=>{SFX.flip();setView('saved');}}>
-          ♥ MY PICKS
+          â¥ MY PICKS
           <span className="fab-cnt">{favs.size}</span>
         </button>
       )}
       {view==='saved'&&(
         <button className="fab" onClick={()=>{SFX.flip();setView('main');}}>
-          ◁ ALL ENTRIES
+          â ALL ENTRIES
         </button>
       )}
     </>
