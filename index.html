@@ -402,20 +402,17 @@ const S = { dir:'1~3시', theme:'맛집 위주', trans:'렌트카' };
 
 /* ── 지도 바텀시트 ── */
 function openNmap(name, desc) {
-  // 검색 정확도를 높이기 위해 일반 지역 단어 제거
+  // 검색 방해 단어 제거
   const clean = name
-    .replace(/\s*(식당가|카페거리|횟집거리|수산시장|주변|골목|거리|항구)\s*$/g, '')
+    .replace(/\s*(식당가|카페거리|횟집거리|수산시장 식당가|해녀 식당가|주변)\s*$/g, '')
     .trim();
 
-  // 현재 선택된 존의 지역명 추가 (예: 성산, 협재)
-  const zoneArea = ZONE_META[S.dir] ? ZONE_META[S.dir].area.split('·')[0] : '제주';
+  // 장소명에 지역/고유명 포함 여부 확인 → 없으면 "제주" 추가
+  const hasLocation = /제주|서귀포|성산|협재|애월|한림|구좌|표선|중문|안덕|대정|모슬포|세화|종달|조천|함덕|이호|도두|비자림|만장굴|월정|김녕|우도|성읍|쇠소|천지연|정방|외돌개|주상절리|산방산|용머리|수월봉|송악산|새별|사려니|용눈이|카멜리아|오설록|동문시장|동문재래|올래국수|우진|몽상드|해녀의부엌|백기/.test(clean);
+  const query = hasLocation ? clean : `${clean} 제주`;
 
-  // 이미 지역명 포함된 경우 그대로, 없으면 존 지역명 추가
-  const hasLocation = /제주|서귀포|성산|협재|애월|한림|구좌|표선|중문|안덕|대정|모슬포/.test(clean);
-  const query = hasLocation ? clean : `${clean} ${zoneArea}`;
   const url = 'https://map.naver.com/p/search/' + encodeURIComponent(query);
 
-  // 바텀시트 표시
   document.getElementById('map-place-name').textContent = name;
   document.getElementById('map-place-desc').textContent = desc || '';
   document.getElementById('map-open-btn').href = url;
@@ -560,7 +557,7 @@ const ZONES = {
   '1~3시': {
     startPos:{lat:33.494,lng:126.730},
     bk:[
-      {n:'세화오일시장',d:'구좌 전통 오일장 — 매월 5·10·15·20·25·30일 개장',stay:40,type:'meal',bus:true,lat:33.522,lng:126.844},
+      {n:'세화민속오일장',d:'구좌 전통 오일장 — 매월 5·10·15·20·25·30일 개장 (세화리)',stay:40,type:'meal',bus:true,lat:33.522,lng:126.844},
       {n:'올래국수',d:'제주 고기국수 원조 — 든든하게 동쪽 일정 시작',stay:40,type:'meal',bus:true,lat:33.510,lng:126.531}
     ],
     si:[
@@ -578,12 +575,12 @@ const ZONES = {
       {n:'월정리 카페거리',d:'월정리해변 앞 감성 카페 거리',stay:40,type:'cafe',bus:true,lat:33.557,lng:126.795}
     ],
     lu:[
-      {n:'해녀의부엌',d:'성산 해녀가 직접 운영하는 제주 해산물 코스 — 사전 예약 필수',stay:70,type:'meal',bus:true,lat:33.459,lng:126.942,tip:'꼭 사전 예약하고 가세요. 당일 예약은 어려워요'},
-      {n:'성산일출봉 주변 해산물 식당',d:'성산항 근처 신선한 해산물 점심',stay:55,type:'meal',bus:true,lat:33.459,lng:126.942}
+      {n:'해녀의부엌 종달점',d:'구좌읍 종달리 — 해녀 공연+해산물 코스 레스토랑, 사전 예약 필수',stay:70,type:'meal',bus:true,lat:33.437,lng:126.921,tip:'반드시 사전 예약 필요! 당일 예약 불가. 목·금·토·일 운영'},
+      {n:'성산 오조해녀의집',d:'성산읍 오조리 어촌계 직영 해녀식당 — 신선한 전복·소라·해삼',stay:55,type:'meal',bus:true,lat:33.459,lng:126.942}
     ],
     di:[
-      {n:'성산 흑돼지 식당가',d:'성산읍 내 제주 흑돼지 저녁 구이',stay:65,type:'meal',bus:true,lat:33.459,lng:126.942},
-      {n:'성산항 횟집 거리',d:'성산항 앞 싱싱한 회 & 해산물 저녁',stay:65,type:'meal',bus:true,lat:33.462,lng:126.940}
+      {n:'백기해녀의집',d:'성산읍 고성리 — 성산일출봉 뷰 해녀식당, 물회·성게칼국수 유명',stay:65,type:'meal',bus:true,lat:33.455,lng:126.930},
+      {n:'성산 흑돼지 식당가',d:'성산읍 내 제주 흑돼지 저녁 구이',stay:65,type:'meal',bus:true,lat:33.459,lng:126.942}
     ]
   },
   '3~6시': {
@@ -602,12 +599,12 @@ const ZONES = {
       {n:'외돌개',d:'서귀포 기암절벽 — 올레 7코스 하이라이트',stay:50,type:'sight',th:['자연 힐링','포토스팟'],bus:false,lat:33.235,lng:126.544}
     ],
     ca:[
-      {n:'이중섭미술관 카페',d:'서귀포 이중섭 거리 문화예술 감성 카페',stay:40,type:'cafe',bus:true,lat:33.250,lng:126.561},
-      {n:'서귀포 매일올레시장',d:'서귀포 전통시장 — 먹거리 투어',stay:45,type:'cafe',bus:true,lat:33.248,lng:126.564}
+      {n:'이중섭미술관',d:'서귀포 이중섭 거리 — 미술관 내부 카페 & 문화예술 거리 감상',stay:40,type:'cafe',bus:true,lat:33.250,lng:126.561},
+      {n:'서귀포 매일올레시장',d:'서귀포 전통시장 — 먹거리 투어 & 잠시 쉬어가기',stay:45,type:'cafe',bus:true,lat:33.248,lng:126.564}
     ],
     lu:[
-      {n:'서귀포 갈치조림 골목',d:'서귀포 대표 갈치조림 거리 — 현지인도 즐겨 찾는 맛',stay:55,type:'meal',bus:true,lat:33.248,lng:126.558},
-      {n:'서귀포 올레시장 국수골목',d:'서귀포 매일올레시장 내 국수 골목',stay:50,type:'meal',bus:true,lat:33.248,lng:126.564}
+      {n:'네거리식당',d:'서귀포 대표 갈치조림 전문점 — 현지인 단골 맛집 (서귀포시 서문로29번길)',stay:55,type:'meal',bus:true,lat:33.248,lng:126.558},
+      {n:'서귀포 매일올레시장',d:'서귀포 매일올레시장 내 향토음식 골목',stay:50,type:'meal',bus:true,lat:33.248,lng:126.564}
     ],
     di:[
       {n:'서귀포 흑돼지 골목',d:'서귀포 대표 흑돼지 저녁 구이 골목',stay:70,type:'meal',bus:true,lat:33.248,lng:126.558},
@@ -618,7 +615,7 @@ const ZONES = {
     startPos:{lat:33.248,lng:126.440},
     bk:[
       {n:'서귀포 매일올레시장',d:'서귀포 대표 재래시장 — 아침 투어 후 국수 한 그릇',stay:45,type:'meal',bus:true,lat:33.248,lng:126.564},
-      {n:'우진해장국',d:'제주 대표 몸국·고사리해장국 — 현지인 아침 맛집',stay:40,type:'meal',bus:true,lat:33.510,lng:126.521}
+      {n:'네거리식당',d:'서귀포 갈치조림 대표 맛집 — 이른 아침부터 영업',stay:40,type:'meal',bus:true,lat:33.248,lng:126.556}
     ],
     si:[
       {n:'중문해수욕장',d:'남쪽 대표 서핑 & 해수욕 해변',stay:70,type:'sight',th:['가족여행','자연 힐링'],bus:true,lat:33.247,lng:126.412},
@@ -645,8 +642,8 @@ const ZONES = {
   '9~12시': {
     startPos:{lat:33.510,lng:126.490},
     bk:[
-      {n:'제주 동문재래시장',d:'제주 대표 재래시장 — 아침 투어 & 먹거리',stay:45,type:'meal',bus:true,lat:33.510,lng:126.532},
-      {n:'올래국수',d:'제주 고기국수 원조 맛집 — 현지인도 줄 서는 곳',stay:40,type:'meal',bus:true,lat:33.510,lng:126.531}
+      {n:'제주동문재래시장',d:'제주 대표 재래시장 — 아침 투어 & 먹거리',stay:45,type:'meal',bus:true,lat:33.510,lng:126.532},
+      {n:'올래국수',d:'제주 고기국수 원조 맛집 — 현지인도 줄 서는 곳 (제주시 귀아랑길 24)',stay:40,type:'meal',bus:true,lat:33.504,lng:126.524}
     ],
     si:[
       {n:'도두봉',d:'제주공항 & 한라산 동시 조망 오름',stay:50,type:'sight',th:['포토스팟','자연 힐링'],bus:true,lat:33.505,lng:126.476,tip:'일출 때 방문하면 황금빛 배경으로 인생샷 가능해요'},
