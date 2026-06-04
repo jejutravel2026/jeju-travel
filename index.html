@@ -349,11 +349,16 @@ body{display:flex;justify-content:center;align-items:center}
         <div class="fl"><div class="fl-label"><i class="ti ti-heart"></i> 테마</div><div class="fl-row" id="theme-row"></div></div>
         <div class="fl"><div class="fl-label"><i class="ti ti-car"></i> 이동수단</div><div class="fl-row" id="trans-row"></div></div>
         <div class="fl">
-          <div class="fl-label"><i class="ti ti-clock"></i> 시간대</div>
+          <div class="fl-label"><i class="ti ti-calendar"></i> 여행 날짜 & 시간</div>
+          <div class="tbox" style="margin-bottom:8px">
+            <div class="tlbl">여행 날짜</div>
+            <input type="date" class="tinput" id="t-date" style="font-size:16px;font-weight:700">
+          </div>
           <div class="trow">
             <div class="tbox"><div class="tlbl">출발</div><input type="time" class="tinput" id="t-st" value="09:00"></div>
             <div class="tbox"><div class="tlbl">종료</div><input type="time" class="tinput" id="t-et" value="19:00"></div>
           </div>
+          <div id="oiljang-warn" style="display:none;background:#FEF3C7;border-radius:10px;padding:10px 12px;font-size:11px;color:#92400E;margin-top:4px;line-height:1.6"></div>
         </div>
         <button class="gbtn" id="gbtn" onclick="genSched()">
           <i class="ti ti-sparkles" style="font-size:18px"></i> AI 일정 생성하기
@@ -399,6 +404,96 @@ body{display:flex;justify-content:center;align-items:center}
 
 <script>
 const S = { dir:'1~3시', theme:'맛집 위주', trans:'렌트카' };
+
+/* ── 오늘 날짜 기본값 설정 ── */
+(function setDefaultDate() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth()+1).padStart(2,'0');
+  const dd = String(today.getDate()).padStart(2,'0');
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('t-date');
+    if (el) el.value = `${yyyy}-${mm}-${dd}`;
+  });
+  // fallback
+  setTimeout(() => {
+    const el = document.getElementById('t-date');
+    if (el && !el.value) el.value = `${yyyy}-${mm}-${dd}`;
+  }, 100);
+})();
+
+/* ── 오일장 & 영업시간 체크 ── */
+function getTravelDate() {
+  const v = document.getElementById('t-date')?.value;
+  return v ? new Date(v + 'T12:00:00') : new Date();
+}
+
+function isAvailable(venue, timeMin, date) {
+  const s = venue.sch;
+  if (!s) {
+    // 스케줄 데이터 없는 식당 → 기본 브레이크타임 14:30~17:00 적용
+    if (venue.type === 'meal') {
+      if (timeMin >= 14*60+30 && timeMin < 17*60) return false;
+    }
+    return true;
+  }
+
+  // 오일장 날짜 체크
+  if (s.oildays) {
+    const day = date.getDate();
+    if (s.oildays === '5_10' && day % 5 !== 0) return false;
+    if (s.oildays === '2_7' && day % 5 !== 2) return false;
+    if (s.oildays === '1_6' && day % 5 !== 1) return false;
+    if (s.oildays === '3_8' && day % 5 !== 3) return false;
+    if (s.oildays === '4_9' && day % 5 !== 4) return false;
+  }
+
+  // 정기휴무 (0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토)
+  if (s.restDays && s.restDays.includes(date.getDay())) return false;
+
+  // 영업 시작 전
+  if (s.openMin !== undefined && timeMin < s.openMin) return false;
+
+  // 영업 종료 후
+  if (s.closeMin !== undefined && timeMin >= s.closeMin) return false;
+
+  // 브레이크타임
+  if (s.brkStartMin !== undefined && s.brkEndMin !== undefined) {
+    if (timeMin >= s.brkStartMin && timeMin < s.brkEndMin) return false;
+  }
+
+  // 해녀의부엌처럼 특정 공연 시간만 가능
+  if (s.showtimes) {
+    const ok = s.showtimes.some(t => timeMin >= t && timeMin < t + 90);
+    if (!ok) return false;
+  }
+
+  return true;
+}
+
+function getSchNote(venue) {
+  return venue.sch?.note || null;
+}
+
+function checkOiljangWarning(src, date) {
+  const warnings = [];
+  const allVenues = [...(src.bk||[]), ...(src.lu||[]), ...(src.di||[]), ...(src.ca||[])];
+  allVenues.forEach(v => {
+    if (v.sch?.oildays) {
+      const day = date.getDate();
+      let open = true;
+      if (v.sch.oildays === '5_10' && day % 5 !== 0) open = false;
+      if (!open) {
+        warnings.push(`⚠️ <strong>${v.n}</strong>은 오일장으로 <strong>${day}일에는 열리지 않아요</strong>. 끝자리 5·0인 날 (5·10·15·20·25·30일)에만 개장해요.`);
+      }
+    }
+    if (v.sch?.restDays && v.sch.restDays.includes(date.getDay())) {
+      const dayNames = ['일','월','화','수','목','금','토'];
+      warnings.push(`⚠️ <strong>${v.n}</strong>은 오늘(${dayNames[date.getDay()]}요일) <strong>휴무</strong>예요.`);
+    }
+  });
+  return warnings;
+}
 
 /* ── 지도 바텀시트 ── */
 function openNmap(name, desc) {
@@ -557,8 +652,10 @@ const ZONES = {
   '1~3시': {
     startPos:{lat:33.494,lng:126.730},
     bk:[
-      {n:'세화민속오일장',d:'구좌 전통 오일장 — 매월 5·10·15·20·25·30일 개장 (세화리)',stay:40,type:'meal',bus:true,lat:33.522,lng:126.844},
-      {n:'올래국수',d:'제주 고기국수 원조 — 든든하게 동쪽 일정 시작',stay:40,type:'meal',bus:true,lat:33.510,lng:126.531}
+      {n:'세화민속오일장',d:'구좌 전통 오일장 — 매월 5·10·15·20·25·30일 개장 (세화리)',stay:40,type:'meal',bus:true,lat:33.522,lng:126.844,
+       sch:{openMin:7*60,closeMin:13*60,oildays:'5_10',note:'매월 끝자리 5·0일만 개장'}},
+      {n:'올래국수',d:'제주 고기국수 원조 — 든든하게 동쪽 일정 시작',stay:40,type:'meal',bus:true,lat:33.510,lng:126.531,
+       sch:{openMin:8*60,closeMin:15*60,restDays:[0],note:'08:00~15:00, 일요일 휴무'}}
     ],
     si:[
       {n:'비자림',d:'500년 비자나무 숲길 — 제주 동쪽 진입 첫 명소',stay:60,type:'sight',th:['자연 힐링','포토스팟'],bus:true,lat:33.494,lng:126.730,tip:'오전 이른 시간에 빛이 숲 사이로 들어와 인생샷 포인트예요'},
@@ -575,8 +672,10 @@ const ZONES = {
       {n:'월정리 카페거리',d:'월정리해변 앞 감성 카페 거리',stay:40,type:'cafe',bus:true,lat:33.557,lng:126.795}
     ],
     lu:[
-      {n:'해녀의부엌 종달점',d:'구좌읍 종달리 — 해녀 공연+해산물 코스 레스토랑, 사전 예약 필수',stay:70,type:'meal',bus:true,lat:33.437,lng:126.921,tip:'반드시 사전 예약 필요! 당일 예약 불가. 목·금·토·일 운영'},
-      {n:'성산 오조해녀의집',d:'성산읍 오조리 어촌계 직영 해녀식당 — 신선한 전복·소라·해삼',stay:55,type:'meal',bus:true,lat:33.459,lng:126.942}
+      {n:'해녀의부엌 종달점',d:'구좌읍 종달리 — 해녀 공연+해산물 코스 레스토랑, 사전 예약 필수',stay:70,type:'meal',bus:true,lat:33.437,lng:126.921,tip:'반드시 사전 예약 필요! 당일 예약 불가. 목·금·토·일 운영',
+       sch:{openMin:11*60,closeMin:20*60,restDays:[0,1,2],showtimes:[12*60,17*60],note:'목~일만 운영, 12시·17시 공연만'}},
+      {n:'성산 오조해녀의집',d:'성산읍 오조리 어촌계 직영 해녀식당 — 신선한 전복·소라·해삼',stay:55,type:'meal',bus:true,lat:33.459,lng:126.942,
+       sch:{openMin:9*60,closeMin:19*60,brkStartMin:14*60+30,brkEndMin:17*60,note:'브레이크 14:30~17:00'}}
     ],
     di:[
       {n:'백기해녀의집',d:'성산읍 고성리 — 성산일출봉 뷰 해녀식당, 물회·성게칼국수 유명',stay:65,type:'meal',bus:true,lat:33.455,lng:126.930},
@@ -586,8 +685,10 @@ const ZONES = {
   '3~6시': {
     startPos:{lat:33.393,lng:126.789},
     bk:[
-      {n:'성읍민속마을 식당가',d:'성읍 마을 입구 현지 식당 — 흑돼지국밥',stay:40,type:'meal',bus:true,lat:33.393,lng:126.789},
-      {n:'서귀포 매일올레시장',d:'서귀포 대표 재래시장 — 아침 국수 & 먹거리',stay:45,type:'meal',bus:true,lat:33.248,lng:126.564}
+      {n:'성읍민속마을 식당가',d:'성읍 마을 입구 현지 식당 — 흑돼지국밥',stay:40,type:'meal',bus:true,lat:33.393,lng:126.789,
+       sch:{openMin:8*60,closeMin:21*60,brkStartMin:14*60+30,brkEndMin:17*60,note:'브레이크 14:30~17:00'}},
+      {n:'서귀포 매일올레시장',d:'서귀포 대표 재래시장 — 아침 국수 & 먹거리',stay:45,type:'meal',bus:true,lat:33.248,lng:126.564,
+       sch:{openMin:7*60,closeMin:20*60,note:'상설시장 연중무휴'}}
     ],
     si:[
       {n:'성읍민속마을',d:'500년 역사 제주 전통 민속 마을 — 말 먹이주기 체험',stay:65,type:'sight',th:['가족여행','자연 힐링'],bus:true,lat:33.393,lng:126.789},
@@ -599,12 +700,16 @@ const ZONES = {
       {n:'외돌개',d:'서귀포 기암절벽 — 올레 7코스 하이라이트',stay:50,type:'sight',th:['자연 힐링','포토스팟'],bus:false,lat:33.235,lng:126.544}
     ],
     ca:[
-      {n:'이중섭미술관',d:'서귀포 이중섭 거리 — 미술관 내부 카페 & 문화예술 거리 감상',stay:40,type:'cafe',bus:true,lat:33.250,lng:126.561},
-      {n:'서귀포 매일올레시장',d:'서귀포 전통시장 — 먹거리 투어 & 잠시 쉬어가기',stay:45,type:'cafe',bus:true,lat:33.248,lng:126.564}
+      {n:'이중섭미술관',d:'서귀포 이중섭 거리 — 미술관 내부 카페 & 문화예술 거리 감상',stay:40,type:'cafe',bus:true,lat:33.250,lng:126.561,
+       sch:{openMin:9*60,closeMin:18*60,note:'09:00~18:00, 월요일 휴관'}},
+      {n:'서귀포 매일올레시장',d:'서귀포 전통시장 — 먹거리 투어 & 잠시 쉬어가기',stay:45,type:'cafe',bus:true,lat:33.248,lng:126.564,
+       sch:{openMin:7*60,closeMin:20*60,note:'상설시장 연중무휴'}}
     ],
     lu:[
-      {n:'네거리식당',d:'서귀포 대표 갈치조림 전문점 — 현지인 단골 맛집 (서귀포시 서문로29번길)',stay:55,type:'meal',bus:true,lat:33.248,lng:126.558},
-      {n:'서귀포 매일올레시장',d:'서귀포 매일올레시장 내 향토음식 골목',stay:50,type:'meal',bus:true,lat:33.248,lng:126.564}
+      {n:'네거리식당',d:'서귀포 대표 갈치조림 전문점 — 현지인 단골 맛집 (서귀포시 서문로29번길)',stay:55,type:'meal',bus:true,lat:33.248,lng:126.558,
+       sch:{openMin:7*60,closeMin:21*60+40,note:'07:00~21:40 (라스트오더 20:40)'}},
+      {n:'서귀포 매일올레시장',d:'서귀포 매일올레시장 내 향토음식 골목',stay:50,type:'meal',bus:true,lat:33.248,lng:126.564,
+       sch:{openMin:7*60,closeMin:20*60,note:'상설시장 연중무휴'}}
     ],
     di:[
       {n:'서귀포 흑돼지 골목',d:'서귀포 대표 흑돼지 저녁 구이 골목',stay:70,type:'meal',bus:true,lat:33.248,lng:126.558},
@@ -627,8 +732,10 @@ const ZONES = {
       {n:'송악산',d:'이중 분화구 & 마라도 조망 — 제주 최남단 근처',stay:50,type:'sight',th:['자연 힐링','포토스팟'],bus:false,lat:33.201,lng:126.281}
     ],
     ca:[
-      {n:'오설록 티뮤지엄',d:'광활한 녹차밭 & 제주 차 문화 공간 — 티라미수 롤케이크 유명',stay:50,type:'cafe',bus:true,lat:33.305,lng:126.288},
-      {n:'이니스프리 제주하우스',d:'제주 자연 감성 카페 & 체험 공간',stay:40,type:'cafe',bus:true,lat:33.305,lng:126.289}
+      {n:'오설록 티뮤지엄',d:'광활한 녹차밭 & 제주 차 문화 공간 — 티라미수 롤케이크 유명',stay:50,type:'cafe',bus:true,lat:33.305,lng:126.288,
+       sch:{openMin:9*60,closeMin:19*60,note:'09:00~19:00(하절기), 연중무휴'}},
+      {n:'이니스프리 제주하우스',d:'제주 자연 감성 카페 & 체험 공간',stay:40,type:'cafe',bus:true,lat:33.305,lng:126.289,
+       sch:{openMin:9*60,closeMin:18*60,note:'09:00~18:00'}}
     ],
     lu:[
       {n:'모슬포항 방어회 거리',d:'제주 최고 방어 명산지 — 겨울 방어회 전국 최고',stay:60,type:'meal',bus:false,lat:33.218,lng:126.246,tip:'방어 제철은 11월~2월이에요. 여름엔 한치회가 더 맛있어요'},
@@ -642,8 +749,10 @@ const ZONES = {
   '9~12시': {
     startPos:{lat:33.510,lng:126.490},
     bk:[
-      {n:'제주동문재래시장',d:'제주 대표 재래시장 — 아침 투어 & 먹거리',stay:45,type:'meal',bus:true,lat:33.510,lng:126.532},
-      {n:'올래국수',d:'제주 고기국수 원조 맛집 — 현지인도 줄 서는 곳 (제주시 귀아랑길 24)',stay:40,type:'meal',bus:true,lat:33.504,lng:126.524}
+      {n:'제주동문재래시장',d:'제주 대표 재래시장 — 아침 투어 & 먹거리',stay:45,type:'meal',bus:true,lat:33.510,lng:126.532,
+       sch:{openMin:6*60,closeMin:18*60,note:'06:00~18:00, 연중무휴'}},
+      {n:'올래국수',d:'제주 고기국수 원조 맛집 — 현지인도 줄 서는 곳 (제주시 귀아랑길 24)',stay:40,type:'meal',bus:true,lat:33.504,lng:126.524,
+       sch:{openMin:8*60,closeMin:15*60,restDays:[0],note:'08:00~15:00, 일요일 휴무'}}
     ],
     si:[
       {n:'도두봉',d:'제주공항 & 한라산 동시 조망 오름',stay:50,type:'sight',th:['포토스팟','자연 힐링'],bus:true,lat:33.505,lng:126.476,tip:'일출 때 방문하면 황금빛 배경으로 인생샷 가능해요'},
@@ -655,8 +764,10 @@ const ZONES = {
       {n:'새별오름',d:'억새밭 & 360도 파노라마 뷰',stay:60,type:'sight',th:['포토스팟','자연 힐링'],bus:false,lat:33.361,lng:126.363,tip:'노을 시간에 맞춰 방문하면 황금빛 억새 사진 찍을 수 있어요'}
     ],
     ca:[
-      {n:'몽상드애월',d:'애월 대표 오션뷰 감성 카페 — 제주 대표 인스타 명소',stay:45,type:'cafe',bus:true,lat:33.470,lng:126.315},
-      {n:'애월 해안도로 카페거리',d:'애월 해안 따라 늘어선 오션뷰 카페 거리',stay:40,type:'cafe',bus:true,lat:33.468,lng:126.316}
+      {n:'몽상드애월',d:'애월 대표 오션뷰 감성 카페 — 제주 대표 인스타 명소',stay:45,type:'cafe',bus:true,lat:33.470,lng:126.315,
+       sch:{openMin:11*60,closeMin:19*60+30,note:'11:00~19:30, 연중무휴'}},
+      {n:'애월 해안도로 카페거리',d:'애월 해안 따라 늘어선 오션뷰 카페 거리',stay:40,type:'cafe',bus:true,lat:33.468,lng:126.316,
+       sch:{openMin:10*60,closeMin:21*60,brkStartMin:15*60,brkEndMin:17*60,note:'카페별 브레이크 15:00~17:00'}}
     ],
     lu:[
       {n:'한림항 수산시장 식당가',d:'한림항 근처 싱싱한 해산물 & 전복 요리',stay:55,type:'meal',bus:true,lat:33.413,lng:126.265},
@@ -682,21 +793,35 @@ function sortByRoute(places,start){
   while(rem.length){let ni=0,minD=Infinity;rem.forEach((p,i)=>{const d=kmBetween(cur,p);if(d<minD){minD=d;ni=i;}});route.push(rem.splice(ni,1)[0]);cur=route[route.length-1];}
   return route;
 }
-function nearest(pool,pos,used,isBus){
-  return pool.filter(x=>!used.has(x.n)&&(!isBus||x.bus!==false)).sort((a,b)=>kmBetween(pos,a)-kmBetween(pos,b))[0]||null;
+function nearest(pool,pos,used,isBus,timeMin,date){
+  return pool
+    .filter(x=>!used.has(x.n)&&(!isBus||x.bus!==false)&&isAvailable(x,timeMin||0,date||new Date()))
+    .sort((a,b)=>kmBetween(pos,a)-kmBetween(pos,b))[0]||null;
 }
 
 function toM(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
 function toT(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
 
-/* ── 일정 생성 ── */
+/* ── 일정 생성 (영업시간·브레이크타임·오일장 반영) ── */
 function buildLocal(st,et){
   const src=ZONES[S.dir],isBus=S.trans==='뚜벅이',theme=S.theme;
   const startM=toM(st),endM=toM(et),LUNCH=12*60,DINNER=18*60,hasDinner=endM>17*60+30;
+  const date=getTravelDate();
   const used=new Set(),out=[];let cur=startM,curPos=src.startPos;
-  const mv=it=>isBus?(it.mb||20):(it.mc||15);
 
-  if(startM<9*60+30){const bk=nearest(src.bk,curPos,used,isBus);if(bk){used.add(bk.n);out.push({...bk,start:toT(cur),end:toT(cur+bk.stay)});curPos=bk;cur+=bk.stay;}}
+  // 오일장 경고 표시
+  const warns=checkOiljangWarning(src,date);
+  const warnEl=document.getElementById('oiljang-warn');
+  if(warnEl){
+    if(warns.length){warnEl.style.display='block';warnEl.innerHTML=warns.join('<br>');}
+    else{warnEl.style.display='none';}
+  }
+
+  // 아침 식사 (영업시간 체크)
+  if(startM<9*60+30){
+    const bk=nearest(src.bk,curPos,used,isBus,startM,date);
+    if(bk){used.add(bk.n);out.push({...bk,start:toT(cur),end:toT(cur+bk.stay),schNote:getSchNote(bk)});curPos=bk;cur+=bk.stay;}
+  }
 
   const pool=src.si.filter(s=>!isBus||s.bus!==false);
   const themed=pool.filter(s=>s.th&&s.th.includes(theme));
@@ -709,17 +834,19 @@ function buildLocal(st,et){
     cur+=tmv;used.add(s.n);out.push({...s,start:toT(cur),end:toT(cur+s.stay)});curPos=s;cur+=s.stay;sightQ.shift();
   }
 
+  // 점심 (영업시간 체크)
   cur=Math.max(cur,LUNCH);
-  const lu=nearest(src.lu,curPos,used,isBus);
-  if(lu){const tmv=travelMin(curPos,lu,isBus);cur+=tmv;used.add(lu.n);out.push({...lu,start:toT(cur),end:toT(cur+lu.stay)});curPos=lu;cur+=lu.stay;}
+  const lu=nearest(src.lu,curPos,used,isBus,cur,date);
+  if(lu){const tmv=travelMin(curPos,lu,isBus);cur+=tmv;used.add(lu.n);out.push({...lu,start:toT(cur),end:toT(cur+lu.stay),schNote:getSchNote(lu)});curPos=lu;cur+=lu.stay;}
 
   const aftEnd=hasDinner?DINNER-35:endM-20;let cafeDone=false;
   sightQ=sortByRoute(sightQ.filter(s=>!used.has(s.n)),curPos);
 
   while(cur<aftEnd-20){
     if(!cafeDone&&cur>=13*60+30){
-      const ca=nearest(src.ca,curPos,used,isBus);
-      if(ca){const tmv=travelMin(curPos,ca,isBus);if(cur+tmv+ca.stay<aftEnd-35){cur+=tmv;used.add(ca.n);out.push({...ca,start:toT(cur),end:toT(cur+ca.stay)});curPos=ca;cur+=ca.stay;sightQ=sortByRoute(sightQ.filter(s=>!used.has(s.n)),curPos);cafeDone=true;continue;}}
+      // 카페 (영업시간 체크)
+      const ca=nearest(src.ca,curPos,used,isBus,cur,date);
+      if(ca){const tmv=travelMin(curPos,ca,isBus);if(cur+tmv+ca.stay<aftEnd-35){cur+=tmv;used.add(ca.n);out.push({...ca,start:toT(cur),end:toT(cur+ca.stay),schNote:getSchNote(ca)});curPos=ca;cur+=ca.stay;sightQ=sortByRoute(sightQ.filter(s=>!used.has(s.n)),curPos);cafeDone=true;continue;}}
     }
     const nxt=sightQ.find(s=>!used.has(s.n));if(!nxt)break;
     const tmv=travelMin(curPos,nxt,isBus);if(cur+tmv+nxt.stay>aftEnd)break;
@@ -727,9 +854,19 @@ function buildLocal(st,et){
     sightQ=sightQ.filter(s=>s.n!==nxt.n);
   }
 
-  if(hasDinner){cur=Math.max(cur,DINNER);const di=nearest(src.di,curPos,used,isBus);if(di){const tmv=travelMin(curPos,di,isBus);cur+=tmv;used.add(di.n);out.push({...di,start:toT(cur),end:toT(cur+di.stay)});}}
+  // 저녁 (영업시간 체크, 브레이크타임 후로 이동)
+  if(hasDinner){
+    cur=Math.max(cur,DINNER);
+    const di=nearest(src.di,curPos,used,isBus,cur,date);
+    if(di){const tmv=travelMin(curPos,di,isBus);cur+=tmv;used.add(di.n);out.push({...di,start:toT(cur),end:toT(cur+di.stay),schNote:getSchNote(di)});}
+  }
 
-  return out.map((item,i)=>({name:item.n,desc:item.d,type:item.type,start:item.start,end:item.end,stay:item.stay,move:i<out.length-1?travelMin(item,out[i+1],isBus):0,tip:item.tip||null}));
+  return out.map((item,i)=>({
+    name:item.n,desc:item.d,type:item.type,
+    start:item.start,end:item.end,stay:item.stay,
+    move:i<out.length-1?travelMin(item,out[i+1],isBus):0,
+    tip:item.tip||null,schNote:item.schNote||null
+  }));
 }
 
 /* ── 네비 & 칩 ── */
@@ -915,6 +1052,7 @@ function renderResult(schedule,st,et){
         <div class="tlname">${item.name}<span class="tltype ${ti.ty}"><i class="ti ${ti.icon}" style="font-size:10px;margin-right:2px"></i>${ti.label}</span></div>
         <div class="tldesc">${item.desc} · ${item.stay}분 체류</div>
         ${item.tip?`<div class="tip-pill"><i class="ti ti-bulb" style="font-size:11px"></i>${item.tip}</div>`:''}
+        ${item.schNote?`<div class="tip-pill" style="background:#E6F1FB;color:#185FA5"><i class="ti ti-clock" style="font-size:11px"></i>${item.schNote}</div>`:''}
         ${mv>0?`<div class="tlmv"><i class="ti ti-${isBus?'bus':'car'}" style="font-size:11px"></i> ${isBus?'버스·도보':'이동'} ${mv}분</div>`:''}
         <button class="tlnmap" onclick="openNmap('${item.name}','${(item.desc||'').replace(/'/g,'')}')"><span style="font-weight:900">N</span>지도에서 보기</button>
       </div>`;
