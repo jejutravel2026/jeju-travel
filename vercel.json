@@ -1,8 +1,6 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/api/places",  "dest": "/api/places.js" },
-    { "src": "/api/schedule","dest": "/api/schedule.js" },
-    { "src": "/(.*)",        "dest": "/index.html" }
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
