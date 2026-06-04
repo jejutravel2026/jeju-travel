@@ -206,6 +206,38 @@ body{display:flex;justify-content:center;align-items:center}
 .map-open-btn:active{opacity:.85;transform:scale(.98)}
 .map-open-hint{text-align:center;font-size:11px;color:var(--tm)}
 
+/* 루트 지도 버튼 & 시트 */
+.route-open-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.18);color:white;
+  border:1.5px solid rgba(255,255,255,.35);border-radius:12px;
+  padding:8px 15px;font-size:12px;font-weight:700;font-family:inherit;
+  cursor:pointer;margin-top:10px;transition:.15s;
+}
+.route-open-btn:active{background:rgba(255,255,255,.28)}
+.route-sheet{
+  position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:500;
+  display:none;align-items:flex-end;border-radius:50px;overflow:hidden;
+}
+.route-sheet.open{display:flex;animation:fadeIn .2s ease}
+.route-inner{
+  width:100%;background:var(--card);border-radius:24px 24px 0 0;
+  padding:0 16px 28px;animation:slideUp .25s ease;max-height:86%;overflow-y:auto;
+}
+.route-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 0 12px}
+.route-title{font-size:15px;font-weight:900;color:var(--t)}
+.route-close-btn{width:30px;height:30px;border-radius:50%;background:var(--bg);border:none;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--ts)}
+.route-naver-link{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:#03C75A;color:white;text-decoration:none;
+  padding:14px;border-radius:12px;font-size:14px;font-weight:700;
+  margin-top:12px;transition:.15s;
+}
+.route-naver-link:active{opacity:.85}
+.route-legend{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:10px}
+.rleg{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ts)}
+
 /* 일정 복원 플로팅 버튼 */
 .restore-fab{
   position:absolute;bottom:92px;left:50%;transform:translateX(-50%);
@@ -246,6 +278,24 @@ body{display:flex;justify-content:center;align-items:center}
     <i class="ti ti-layout-list" style="font-size:15px"></i>
     내 일정 이어보기
   </button>
+
+  <!-- 루트 지도 시트 -->
+  <div class="route-sheet" id="route-sheet" onclick="if(event.target===this)closeRoute()">
+    <div class="route-inner">
+      <div style="width:40px;height:4px;background:#DDD;border-radius:2px;margin:12px auto 0"></div>
+      <div class="route-hdr">
+        <div class="route-title">🗺️ 오늘 이동 루트</div>
+        <button class="route-close-btn" onclick="closeRoute()">✕</button>
+      </div>
+      <div id="route-map-svg" style="border-radius:14px;overflow:hidden"></div>
+      <div class="route-legend" id="route-legend"></div>
+      <a class="route-naver-link" id="route-naver-link" href="#" target="_blank" rel="noopener">
+        <span style="font-size:15px;font-weight:900">N</span>
+        네이버 지도로 전체 루트 열기
+        <i class="ti ti-external-link" style="font-size:13px"></i>
+      </a>
+    </div>
+  </div>
 
   <!-- HOME -->
   <div class="screen on" id="s-home">
@@ -400,6 +450,9 @@ body{display:flex;justify-content:center;align-items:center}
       <div class="res-t" id="r-title"></div>
       <div class="res-s" id="r-sub"></div>
       <div class="res-stats" id="r-stats"></div>
+      <button class="route-open-btn" onclick="openRoute()">
+        <i class="ti ti-route" style="font-size:14px"></i> 루트 지도 보기
+      </button>
     </div>
     <div class="scroll" id="result-scroll">
       <div class="timeline" id="timeline"></div>
@@ -887,7 +940,119 @@ function buildLocal(st,et){
   }));
 }
 
-/* ── 일정 저장 & 복원 (localStorage) ── */
+/* ── GPS 실제 위치 ── */
+function initGPS() {
+  const pill = document.querySelector('#s-nearby .loc-pill');
+  if (!pill || !navigator.geolocation) return;
+  pill.innerHTML = '<i class="ti ti-map-pin" style="font-size:12px"></i> 위치 확인 중...';
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      updateMapDot(lat, lng);
+      try {
+        const r = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ko`,
+          { headers: {'User-Agent':'JejuTravelApp/1.0'} }
+        );
+        const d = await r.json();
+        const a = d.address || {};
+        const loc = a.quarter || a.suburb || a.neighbourhood ||
+                    a.village || a.city_district || a.county || a.town || '제주';
+        pill.innerHTML = `<i class="ti ti-map-pin" style="font-size:12px"></i> ${loc}`;
+      } catch {
+        pill.innerHTML = `<i class="ti ti-map-pin" style="font-size:12px"></i> 현재 위치`;
+      }
+    },
+    () => { pill.innerHTML = '<i class="ti ti-map-pin" style="font-size:12px"></i> 제주'; },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+  );
+}
+
+function updateMapDot(lat, lng) {
+  const W=358, H=130;
+  const x = (lng - 126.10) / (127.05 - 126.10) * W;
+  const y = (33.62 - lat)  / (33.62 - 33.10)  * H;
+  const wrap = document.querySelector('#s-nearby .mapbox > div');
+  if (wrap) {
+    wrap.style.position = 'absolute';
+    wrap.style.left     = `${Math.max(16, Math.min(W-16, x))}px`;
+    wrap.style.top      = `${Math.max(16, Math.min(H-16, y))}px`;
+    wrap.style.transform = 'translate(-50%,-50%)';
+  }
+}
+
+/* ── 루트 지도 ── */
+let _routeItems = [];
+
+function getVenueCoords(name) {
+  for (const z of Object.values(ZONES)) {
+    const all = [...(z.bk||[]),...(z.si||[]),...(z.ca||[]),...(z.lu||[]),...(z.di||[])];
+    const v = all.find(x => x.n === name);
+    if (v?.lat) return { lat: v.lat, lng: v.lng };
+  }
+  return null;
+}
+
+function buildRouteSVG(items) {
+  const W=340, H=180;
+  const toX = lng => (lng - 126.10) / (127.05 - 126.10) * (W-30) + 15;
+  const toY = lat => (33.62  - lat)  / (33.62  - 33.10)  * (H-25) + 12;
+
+  const pts = items.map((item, i) => {
+    const c = getVenueCoords(item.name);
+    if (!c) return null;
+    return { ...item, i: i+1, x: toX(c.lng), y: toY(c.lat), c };
+  }).filter(Boolean);
+
+  if (!pts.length) return { svg:'<p style="padding:20px;text-align:center;color:var(--ts)">경로 데이터 없음</p>', legend:'', naverUrl:'#' };
+
+  // 제주 섬 윤곽 (시계방향)
+  const isle = 'M151,33 L205,26 L235,23 L299,36 L302,56 L266,86 L219,135 L165,129 L114,135 L80,135 L47,142 L23,109 L57,76 L80,56 L124,46Z';
+
+  // 루트 선
+  const line = pts.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+  const TC = { meal:'#E8603C', cafe:'#D97706', sight:'#185FA5' };
+  const pins = pts.map(p=>{
+    const col = TC[p.type]||'#2D6A4F';
+    return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="11" fill="${col}" stroke="white" stroke-width="2.5"/>
+    <text x="${p.x.toFixed(1)}" y="${(p.y+3.5).toFixed(1)}" text-anchor="middle" fill="white" font-size="9" font-weight="700" font-family="sans-serif">${p.i}</text>`;
+  }).join('');
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+    <rect width="${W}" height="${H}" fill="#B8D4E8"/>
+    <path d="${isle}" fill="#C8E6C9" stroke="#81C784" stroke-width="1.5"/>
+    <path d="${line}" fill="none" stroke="#1A5C3A" stroke-width="2.5" stroke-dasharray="7,4" stroke-linecap="round" opacity=".85"/>
+    ${pins}
+  </svg>`;
+
+  const legend = pts.map(p=>{
+    const col = TC[p.type]||'#2D6A4F';
+    return `<div class="rleg"><div style="width:17px;height:17px;border-radius:50%;background:${col};color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">${p.i}</div><span style="max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px">${p.name}</span></div>`;
+  }).join('');
+
+  // 네이버 루트 URL (출발 → 경유 → 도착)
+  let naverUrl = '#';
+  if (pts.length >= 2) {
+    const enc = p => `${p.c.lng},${p.c.lat},${encodeURIComponent(p.name)}`;
+    const segs = pts.map(enc).join(';;');
+    naverUrl = `https://map.naver.com/p/directions/${segs}/car`;
+  }
+  return { svg, legend, naverUrl };
+}
+
+function openRoute() {
+  if (!_routeItems.length) return;
+  const { svg, legend, naverUrl } = buildRouteSVG(_routeItems);
+  document.getElementById('route-map-svg').innerHTML = svg;
+  document.getElementById('route-legend').innerHTML = legend;
+  document.getElementById('route-naver-link').href = naverUrl;
+  document.getElementById('route-sheet').classList.add('open');
+}
+
+function closeRoute() {
+  document.getElementById('route-sheet').classList.remove('open');
+}
 function saveLastSchedule(schedule, st, et) {
   try {
     localStorage.setItem('jeju_sched', JSON.stringify({
@@ -930,6 +1095,7 @@ function go(id) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
   updateRestoreFab();
+  if (id === 'nearby') initGPS();
 }
 function qs(dir,theme){S.dir=dir;S.theme=theme;syncChips();go('plan');}
 
@@ -1119,6 +1285,7 @@ function renderResult(schedule,st,et){
     tl.appendChild(d);
   });
   document.getElementById('result-scroll').scrollTop=0;go('result');
+  _routeItems = schedule; // 루트 지도용 저장
   saveLastSchedule(schedule, st, et);
 }
 
