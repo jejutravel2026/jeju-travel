@@ -721,7 +721,7 @@ function App(){
 
   /* ── start edit ── */
   function startEdit(p){
-    SFX.tick();
+    
     setForm({name:p.name,category:p.category,desc:p.desc||'',link:p.link,bookingLink:p.bookingLink||'',isFeatured:!!p.isFeatured,isSponsored:!!p.isSponsored});
     setEditId(p.id);
     window.scrollTo({top:0,behavior:'smooth'});
@@ -775,30 +775,24 @@ function App(){
           </div>
           <div className="card-foot">
             {p.bookingLink?(
-              <a href={p.bookingLink} target="_blank" rel="noopener noreferrer" style={{flex:1}}>
-                <button className="info-btn book-btn" style={{width:'100%'}}
-                  onClick={()=>SFX.tick()}>
-                  🔖 지금 예약하기
-                </button>
-              </a>
+              <button className="info-btn book-btn" style={{flex:1}}
+                onClick={()=>{window.open(p.bookingLink,'_blank');}}>
+                🔖 지금 예약하기
+              </button>
             ):(
-              <a href={p.link} target="_blank" rel="noopener noreferrer" style={{flex:1}}>
-                <button className="info-btn detail-btn" style={{width:'100%'}}
-                  onClick={()=>SFX.tick()}>
-                  ↗ 관련정보 보기
-                </button>
-              </a>
+              <button className="info-btn detail-btn" style={{flex:1}}
+                onClick={()=>{window.open(p.link,'_blank');}}>
+                ↗ 관련정보 보기
+              </button>
             )}
             {p.bookingLink&&(
-              <a href={p.link} target="_blank" rel="noopener noreferrer">
-                <button className="info-btn detail-btn" style={{padding:'10px 14px'}}
-                  onClick={()=>SFX.tick()}>↗</button>
-              </a>
+              <button className="info-btn detail-btn" style={{padding:'10px 14px'}}
+                onClick={()=>{window.open(p.link,'_blank');}}>↗</button>
             )}
             {isAdm&&(
               <div className="adm-btns">
                 <button className="adm-btn" onClick={()=>startEdit(p)}>수정</button>
-                <button className="adm-btn del" onClick={()=>{SFX.tick();setDelId(p.id);setModal('delete')}}>삭제</button>
+                <button className="adm-btn del" onClick={()=>{setDelId(p.id);setModal('delete')}}>삭제</button>
               </div>
             )}
           </div>
@@ -822,7 +816,7 @@ function App(){
 
       {/* SCROLL TO TOP */}
       <button className={`back-top ${scroll>300?'show':''}`}
-        onClick={()=>{window.scrollTo({top:0,behavior:'smooth'});SFX.tick();}}>↑</button>
+        onClick={()=>{window.scrollTo({top:0,behavior:'smooth'});}}>↑</button>
 
       {/* MODALS */}
       {modal==='login'&&(
@@ -918,7 +912,7 @@ function App(){
             </div>
             <div className="mast-btns">
               <button className={`mast-btn ${view==='saved'?'act':'sec'}`}
-                onClick={()=>{SFX.flip();setView(view==='saved'?'main':'saved');}}>
+                onClick={()=>{setView(view==='saved'?'main':'saved');}}>
                 {view==='saved'?'◁ BACK':'♥ SAVED'}
               </button>
               {isAdm
@@ -931,9 +925,9 @@ function App(){
                   >
                     {publishing?'발행중...':'🚀 발행'}
                   </button>
-                  <button className="mast-btn sec" onClick={()=>{SFX.tick();setIsAdm(false);}}>✕</button>
+                  <button className="mast-btn sec" onClick={()=>{setIsAdm(false);}}>✕</button>
                 </>
-                :<button className="mast-btn sec" onClick={()=>{SFX.tick();setModal('login');}}>🔐</button>
+                :<button className="mast-btn sec" onClick={()=>{setModal('login');}}>🔐</button>
               }
             </div>
           </div>
@@ -951,7 +945,7 @@ function App(){
                   <button key={c.key}
                     className={`cat-stamp ${on?'on':''}`}
                     style={{color:on?c.color:'#8B6840'}}
-                    onClick={()=>{SFX.flip();setTab(c.key);}}>
+                    onClick={()=>{setTab(c.key);}}>
                     <div className="cat-stamp-label">{c.stamp}</div>
                     <div className="cat-stamp-sub">{c.label}</div>
                     <div className="cat-underline" style={{background:c.color}}/>
@@ -1023,7 +1017,7 @@ function App(){
                   </button>
                   {editId&&(
                     <button type="button" className="cancel-btn"
-                      onClick={()=>{SFX.tick();setEditId(null);setForm({name:'',category:'식당',desc:'',link:'',bookingLink:'',isFeatured:false,isSponsored:false});}}>
+                      onClick={()=>{setEditId(null);setForm({name:'',category:'식당',desc:'',link:'',bookingLink:'',isFeatured:false,isSponsored:false});}}>
                       CANCEL
                     </button>
                   )}
@@ -1034,7 +1028,7 @@ function App(){
 
           {/* TOP AD BANNER */}
           {view!=='saved'&&(
-            <div className="ad-banner" onClick={()=>{SFX.tick();setModal('biz');}}>
+            <div className="ad-banner" onClick={()=>{setModal('biz');}}>
               <div className="ad-ico">📋</div>
               <div className="ad-text">
                 <div className="ad-tag">광고 문의</div>
@@ -1120,13 +1114,13 @@ function App(){
 
       {/* FAB */}
       {view!=='saved'&&favs.size>0&&(
-        <button className="fab" onClick={()=>{SFX.flip();setView('saved');}}>
+        <button className="fab" onClick={()=>{setView('saved');}}>
           ♥ MY PICKS
           <span className="fab-cnt">{favs.size}</span>
         </button>
       )}
       {view==='saved'&&(
-        <button className="fab" onClick={()=>{SFX.flip();setView('main');}}>
+        <button className="fab" onClick={()=>{setView('main');}}>
           ◁ ALL ENTRIES
         </button>
       )}
