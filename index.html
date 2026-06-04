@@ -264,7 +264,7 @@ body{display:flex;justify-content:center;align-items:center}
       </button>
       <div class="map-place-name" id="map-place-name"></div>
       <div class="map-place-desc" id="map-place-desc"></div>
-      <a class="map-open-btn" id="map-open-btn" href="#" target="_blank" rel="noopener">
+      <a class="map-open-btn" id="map-open-btn" href="#" rel="noopener">
         <span style="font-size:16px;font-weight:900">N</span>
         네이버 지도에서 보기
         <i class="ti ti-external-link" style="font-size:14px"></i>
@@ -573,16 +573,37 @@ function openNmap(name, desc) {
     .replace(/\s*(식당가|카페거리|횟집거리|수산시장 식당가|해녀 식당가|주변)\s*$/g, '')
     .trim();
 
-  // 장소명에 지역/고유명 포함 여부 확인 → 없으면 "제주" 추가
+  // 지역명 없으면 "제주" 추가
   const hasLocation = /제주|서귀포|성산|협재|애월|한림|구좌|표선|중문|안덕|대정|모슬포|세화|종달|조천|함덕|이호|도두|비자림|만장굴|월정|김녕|우도|성읍|쇠소|천지연|정방|외돌개|주상절리|산방산|용머리|수월봉|송악산|새별|사려니|용눈이|카멜리아|오설록|동문시장|동문재래|올래국수|우진|몽상드|해녀의부엌|백기/.test(clean);
   const query = hasLocation ? clean : `${clean} 제주`;
 
-  const url = 'https://map.naver.com/p/search/' + encodeURIComponent(query);
+  // 딥링크 (네이버 지도 앱 직접 열기 → 브라우저는 앱 그대로 유지)
+  const deepLink = `nmap://search?query=${encodeURIComponent(query)}&appname=jejutravel`;
+  const webUrl   = `https://map.naver.com/p/search/${encodeURIComponent(query)}`;
 
   document.getElementById('map-place-name').textContent = name;
   document.getElementById('map-place-desc').textContent = desc || '';
-  document.getElementById('map-open-btn').href = url;
+
+  const btn = document.getElementById('map-open-btn');
+  btn.onclick = (e) => {
+    e.preventDefault();
+    openDeepLink(deepLink, webUrl);
+  };
+
   document.getElementById('map-sheet').classList.add('open');
+}
+
+/* 딥링크 → 1.5초 후에도 앱 화면이면 웹 fallback */
+function openDeepLink(deepLink, webUrl) {
+  window.location.href = deepLink;          // 네이버 지도 앱 열기
+  const t = setTimeout(() => {
+    if (!document.hidden) {                  // 앱이 안 열렸으면 웹으로
+      window.open(webUrl, '_blank');
+    }
+  }, 1500);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearTimeout(t);   // 앱 열렸으면 타이머 취소
+  }, { once: true });
 }
 
 function closeMapSheet() {
