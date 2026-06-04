@@ -854,9 +854,8 @@ function App(){
           <div className="modal" onClick={e=>e.stopPropagation()}>
             <div className="modal-hdr">★ 업체 등록 문의</div>
             <div className="modal-body">
-              <p>제주 로컬 가이드에 내 업체를 등록하고 싶으시다면 아래 연락처로 문의해주세요.<br/><br/>
-              📧 <b>hello@jejuguide.kr</b><br/>
-              📱 카카오채널: @jejuguide</p>
+              <p>리라 가이드에 내 업체를 등록하고 싶으시다면 아래 이메일로 문의해주세요.<br/><br/>
+              📧 <b>riradpt@naver.com</b></p>
               <div className="modal-btns">
                 <button className="m-pri" onClick={()=>setModal(null)}>확인</button>
               </div>
@@ -874,11 +873,11 @@ function App(){
             <div className="ticker-inner">
               {[...Array(3)].map((_,i)=>(
                 <span key={i} style={{display:'flex',alignItems:'center'}}>
-                  <span className="ticker-item">제주 로컬 가이드</span>
+                  <span className="ticker-item">리라 가이드</span>
                   <span className="ticker-sep">✦</span>
-                  <span className="ticker-item">현지인이 직접 가본 곳만</span>
+                  <span className="ticker-item">리라가 추천하는 제주</span>
                   <span className="ticker-sep">✦</span>
-                  <span className="ticker-item">Jeju Local's Pick</span>
+                  <span className="ticker-item">Rira's Pick</span>
                   <span className="ticker-sep">✦</span>
                   <span className="ticker-item">식당 · 카페 · 숙소 · 체험</span>
                   <span className="ticker-sep">✦</span>
@@ -890,10 +889,10 @@ function App(){
           <div className="mast-body">
             <div>
               <div className="mast-title">
-                {view==='saved'?'MY PICKS':'JEJU GUIDE'}
+                {view==='saved'?'MY PICKS':'RIRA GUIDE'}
               </div>
               <div className="mast-sub">
-                {view==='saved'?`${savedList.length} places saved`:'Local\'s Finest Selection'}
+                {view==='saved'?`${savedList.length} places saved`:''}
               </div>
             </div>
             <div className="mast-btns">
@@ -1006,9 +1005,9 @@ function App(){
             <div className="ad-banner" onClick={()=>{SFX.tick();setModal('biz');}}>
               <div className="ad-ico">📋</div>
               <div className="ad-text">
-                <div className="ad-tag">Business Inquiry</div>
-                <div className="ad-msg">이 곳에 내 업체를 등록하세요</div>
-                <div className="ad-sub">현지인 추천 가이드 · 월 정액 피처드 플랜</div>
+                <div className="ad-tag">광고 문의</div>
+                <div className="ad-msg">내 업체를 리라 가이드에 등록하세요</div>
+                <div className="ad-sub">riradpt@naver.com</div>
               </div>
               <div className="ad-arrow">›</div>
             </div>
@@ -1072,9 +1071,9 @@ function App(){
                   <div className="biz-cta-body">
                     <div className="biz-title">내 업체를 소개하고 싶다면?</div>
                     <div className="biz-desc">
-                      제주 로컬 가이드에 등록하고 더 많은 여행자에게<br/>
+                      리라 가이드에 등록하고 더 많은 여행자에게<br/>
                       직접 운영하는 식당 · 카페 · 숙소를 알려보세요.<br/>
-                      피처드 등록 · 광고 배너 · 예약 링크 연동 가능
+                      광고 문의: riradpt@naver.com
                     </div>
                     <button className="biz-btn" onClick={()=>{SFX.coin();setModal('biz');}}>
                       ★ 등록 문의하기
