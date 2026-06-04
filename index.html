@@ -174,11 +174,60 @@ body{display:flex;justify-content:center;align-items:center}
 .fu{animation:fadeUp .35s ease forwards;opacity:0}
 .d1{animation-delay:.05s}.d2{animation-delay:.10s}.d3{animation-delay:.15s}
 .d4{animation-delay:.20s}.d5{animation-delay:.25s}.d6{animation-delay:.30s}
+
+/* 지도 바텀시트 */
+.map-sheet{
+  position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:500;
+  display:none;align-items:flex-end;border-radius:50px;overflow:hidden;
+}
+.map-sheet.open{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.map-sheet-inner{
+  width:100%;background:var(--card);
+  border-radius:24px 24px 0 0;
+  padding:0 20px 32px;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.map-handle{width:40px;height:4px;background:#DDD;border-radius:2px;margin:12px auto 20px}
+.map-back-btn{
+  display:flex;align-items:center;gap:6px;background:none;border:none;
+  font-size:13px;font-weight:700;color:var(--p);cursor:pointer;
+  font-family:inherit;padding:0;margin-bottom:18px;
+}
+.map-place-name{font-size:19px;font-weight:900;color:var(--t);margin-bottom:6px;line-height:1.3}
+.map-place-desc{font-size:12px;color:var(--ts);margin-bottom:20px;line-height:1.5}
+.map-open-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:#03C75A;color:white;text-decoration:none;
+  padding:16px;border-radius:14px;font-size:15px;font-weight:700;
+  margin-bottom:10px;transition:.15s;
+}
+.map-open-btn:active{opacity:.85;transform:scale(.98)}
+.map-open-hint{text-align:center;font-size:11px;color:var(--tm)}
 </style>
 </head>
 <body>
 <div class="phone">
   <div class="notch"></div>
+
+  <!-- 지도 바텀시트 -->
+  <div class="map-sheet" id="map-sheet" onclick="if(event.target===this)closeMapSheet()">
+    <div class="map-sheet-inner">
+      <div class="map-handle"></div>
+      <button class="map-back-btn" onclick="closeMapSheet()">
+        <i class="ti ti-arrow-left" style="font-size:16px"></i> 앱으로 돌아가기
+      </button>
+      <div class="map-place-name" id="map-place-name"></div>
+      <div class="map-place-desc" id="map-place-desc"></div>
+      <a class="map-open-btn" id="map-open-btn" href="#" target="_blank" rel="noopener">
+        <span style="font-size:16px;font-weight:900">N</span>
+        네이버 지도에서 보기
+        <i class="ti ti-external-link" style="font-size:14px"></i>
+      </a>
+      <div class="map-open-hint">지도 확인 후 위 "앱으로 돌아가기" 버튼을 누르세요</div>
+    </div>
+  </div>
 
   <!-- HOME -->
   <div class="screen on" id="s-home">
@@ -351,10 +400,30 @@ body{display:flex;justify-content:center;align-items:center}
 <script>
 const S = { dir:'1~3시', theme:'맛집 위주', trans:'렌트카' };
 
-/* ── 네이버 지도 연결 ── */
-function openNmap(name) {
-  const url = 'https://map.naver.com/p/search/' + encodeURIComponent(name + ' 제주');
-  window.open(url, '_blank');
+/* ── 지도 바텀시트 ── */
+function openNmap(name, desc) {
+  // 검색 정확도를 높이기 위해 일반 지역 단어 제거
+  const clean = name
+    .replace(/\s*(식당가|카페거리|횟집거리|수산시장|주변|골목|거리|항구)\s*$/g, '')
+    .trim();
+
+  // 현재 선택된 존의 지역명 추가 (예: 성산, 협재)
+  const zoneArea = ZONE_META[S.dir] ? ZONE_META[S.dir].area.split('·')[0] : '제주';
+
+  // 이미 지역명 포함된 경우 그대로, 없으면 존 지역명 추가
+  const hasLocation = /제주|서귀포|성산|협재|애월|한림|구좌|표선|중문|안덕|대정|모슬포/.test(clean);
+  const query = hasLocation ? clean : `${clean} ${zoneArea}`;
+  const url = 'https://map.naver.com/p/search/' + encodeURIComponent(query);
+
+  // 바텀시트 표시
+  document.getElementById('map-place-name').textContent = name;
+  document.getElementById('map-place-desc').textContent = desc || '';
+  document.getElementById('map-open-btn').href = url;
+  document.getElementById('map-sheet').classList.add('open');
+}
+
+function closeMapSheet() {
+  document.getElementById('map-sheet').classList.remove('open');
 }
 
 /* ════════════════════════════════════════════
@@ -730,7 +799,7 @@ function renderNaverPlaces(places, cat) {
         <div class="pmeta">${addrShort}</div>
         <div class="ptags">
           ${catLabel?`<span class="ptag" style="background:${c.tc};color:${c.oc}">${catLabel}</span>`:''}
-          <button class="nmap-btn" onclick="event.stopPropagation();openNmap('${p.name.replace(/'/g,'')}')"><span class="nmap-n">N</span>지도</button>
+          <button class="nmap-btn" onclick="event.stopPropagation();openNmap('${p.name.replace(/'/g,'')}','${(p.category||'').replace(/'/g,'')}')"><span class="nmap-n">N</span>지도</button>
         </div>
       </div>
       <div class="pright" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
@@ -755,7 +824,7 @@ function renderLocalPlaces(cat) {
         <div class="pmeta">${p.m}</div>
         <div class="ptags">
           ${p.tags.map(t=>`<span class="ptag" style="background:${p.tc};color:${p.oc}">${t}</span>`).join('')}
-          <button class="nmap-btn" onclick="event.stopPropagation();openNmap('${p.n}')"><span class="nmap-n">N</span>지도</button>
+          <button class="nmap-btn" onclick="event.stopPropagation();openNmap('${p.n}','${(p.m||'').replace(/'/g,'')}')"><span class="nmap-n">N</span>지도</button>
         </div>
       </div>
       <div class="pright"><div class="pdist">${p.d}</div><div class="pstar">${p.star}</div></div>`;
@@ -850,7 +919,7 @@ function renderResult(schedule,st,et){
         <div class="tldesc">${item.desc} · ${item.stay}분 체류</div>
         ${item.tip?`<div class="tip-pill"><i class="ti ti-bulb" style="font-size:11px"></i>${item.tip}</div>`:''}
         ${mv>0?`<div class="tlmv"><i class="ti ti-${isBus?'bus':'car'}" style="font-size:11px"></i> ${isBus?'버스·도보':'이동'} ${mv}분</div>`:''}
-        <button class="tlnmap" onclick="openNmap('${item.name}')"><span style="font-weight:900">N</span>지도에서 보기</button>
+        <button class="tlnmap" onclick="openNmap('${item.name}','${(item.desc||'').replace(/'/g,'')}')"><span style="font-weight:900">N</span>지도에서 보기</button>
       </div>`;
     tl.appendChild(d);
   });
