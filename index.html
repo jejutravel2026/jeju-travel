@@ -117,6 +117,73 @@ const SFX = (() => {
   return {tick,stamp,coin,flip,err,pop};
 })();
 
+/* ══════════════════════════════════════════════════════
+   🎵  BGM – 제주도의 푸른밤 (16화음 폰 스타일)
+══════════════════════════════════════════════════════ */
+const BGM = (() => {
+  const BPM=80, Q=60/BPM, R=0;
+  const G2=98,A2=110,B2=123,C3=131,D3=147,E3=165,FS3=185;
+  const G3=196,A3=220,B3=247,C4=262,D4=294,E4=330,FS4=370,G4=392;
+
+  /* 제주도의 푸른밤 — [주파수, 박자] */
+  const MEL=[
+    [D4,.5],[D4,.5],[D4,.5],[B3,.5],[A3,.5],[G3,1.0],[R,.5], // 제주도 푸른밤
+    [B3,.5],[D4,.5],[E4,.5],[D4,.5],[B3,1.5],[R,.5],          // 그 섬에 있으면
+    [G4,.5],[G4,.5],[FS4,.5],[E4,.5],[D4,1.5],[R,.5],         // 나는 왜 이렇게
+    [D4,.5],[C4,.5],[B3,.5],[A3,.5],[G3,1.5],[R,.5],          // 혼자일까요
+    [B3,.5],[B3,.5],[B3,.5],[A3,.5],[G3,1.5],[R,.5],          // 사랑도 꿈도
+    [A3,.5],[B3,.5],[A3,.5],[G3,.5],[FS3,1.5],[R,.5],         // 다 두고 온 것을
+    [D4,.5],[E4,.5],[D4,.5],[B3,1.5],[R,1.0],                 // 이제는 알것
+    [D4,.5],[B3,.5],[G3,2.5],[R,.5],                          // 같아요
+  ];
+  const BASS=[
+    [G2,2],[D3,2], [G2,2],[D3,2],
+    [E3,2],[B2,2], [C3,2],[D3,2],
+    [G2,2],[D3,2], [G2,2],[D3,2],
+    [E3,2],[D3,2], [G2,4],
+  ];
+
+  let ctx=null, running=false, tid=null;
+
+  function note(f,t,dur,vol,type='square'){
+    if(!f||!ctx) return;
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type; o.frequency.value=f;
+    o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol,t+.003);
+    g.gain.setValueAtTime(vol*.65,t+.03);
+    g.gain.linearRampToValueAtTime(0,t+dur*.9);
+    o.start(t); o.stop(t+dur);
+  }
+
+  function sched(t0){
+    let t=t0;
+    for(const [f,b] of MEL){ if(f) note(f,t,b*Q*.87,.10); t+=b*Q; }
+    t=t0;
+    for(const [f,b] of BASS){ if(f) note(f,t,b*Q*.6,.045,'triangle'); t+=b*Q; }
+    return t;
+  }
+
+  function loop(t0){
+    if(!running) return;
+    const end=sched(t0);
+    tid=setTimeout(()=>loop(end), Math.max(0,(end-ctx.currentTime-.2)*1000));
+  }
+
+  return {
+    start(){
+      if(running) return;
+      if(!ctx) ctx=new(window.AudioContext||window.webkitAudioContext)();
+      if(ctx.state==='suspended') ctx.resume();
+      running=true; loop(ctx.currentTime+.1);
+    },
+    stop(){ running=false; clearTimeout(tid); },
+    toggle(){ running?this.stop():this.start(); },
+    on(){ return running; },
+  };
+})();
+
 /* ══════════════════════════════════════════
    ★  SEED DATA  — GitHub 저장 시 업데이트됨
 ══════════════════════════════════════════ */
@@ -611,7 +678,21 @@ function App(){
   const [toast,  setToast]  = useState('');
   const [stamps, setStamps] = useState({});
   const [scroll, setScroll] = useState(0);
+  const [bgmOn,  setBgmOn]  = useState(true);
   const toastRef = useRef();
+
+  /* ── BGM 첫 터치 시 자동시작 ── */
+  useEffect(()=>{
+    const start=()=>{ BGM.start(); setBgmOn(true); };
+    window.addEventListener('touchstart',start,{once:true});
+    window.addEventListener('click',start,{once:true});
+    return()=>{ window.removeEventListener('touchstart',start); window.removeEventListener('click',start); };
+  },[]);
+
+  function toggleBGM(){
+    if(BGM.on()){ BGM.stop(); setBgmOn(false); }
+    else { BGM.start(); setBgmOn(true); }
+  }
 
   /* ── persist ── */
   useEffect(()=>{ localStorage.setItem('jlg_places_v2',JSON.stringify(places)); },[places]);
@@ -911,6 +992,11 @@ function App(){
               </div>
             </div>
             <div className="mast-btns">
+              <button className="mast-btn sec" onClick={toggleBGM}
+                style={{fontSize:'14px',padding:'5px 9px'}}
+                title={bgmOn?'음악 끄기':'음악 켜기'}>
+                {bgmOn?'🔊':'🔇'}
+              </button>
               <button className={`mast-btn ${view==='saved'?'act':'sec'}`}
                 onClick={()=>{setView(view==='saved'?'main':'saved');}}>
                 {view==='saved'?'◁ BACK':'♥ SAVED'}
