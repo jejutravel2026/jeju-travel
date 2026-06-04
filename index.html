@@ -205,6 +205,18 @@ body{display:flex;justify-content:center;align-items:center}
 }
 .map-open-btn:active{opacity:.85;transform:scale(.98)}
 .map-open-hint{text-align:center;font-size:11px;color:var(--tm)}
+
+/* 일정 복원 플로팅 버튼 */
+.restore-fab{
+  position:absolute;bottom:92px;left:50%;transform:translateX(-50%);
+  background:var(--pd);color:white;border:none;border-radius:24px;
+  padding:11px 20px;font-size:12px;font-weight:700;font-family:inherit;
+  cursor:pointer;display:none;align-items:center;gap:7px;
+  box-shadow:0 4px 20px rgba(26,42,26,0.45);z-index:150;
+  white-space:nowrap;transition:.15s;
+}
+.restore-fab.show{display:flex}
+.restore-fab:active{transform:translateX(-50%) scale(.97)}
 </style>
 </head>
 <body>
@@ -228,6 +240,12 @@ body{display:flex;justify-content:center;align-items:center}
       <div class="map-open-hint">지도 확인 후 위 "앱으로 돌아가기" 버튼을 누르세요</div>
     </div>
   </div>
+
+  <!-- 일정 복원 플로팅 버튼 -->
+  <button class="restore-fab" id="restore-fab" onclick="restoreSchedule()">
+    <i class="ti ti-layout-list" style="font-size:15px"></i>
+    내 일정 이어보기
+  </button>
 
   <!-- HOME -->
   <div class="screen on" id="s-home">
@@ -869,8 +887,50 @@ function buildLocal(st,et){
   }));
 }
 
-/* ── 네비 & 칩 ── */
-function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById('s-'+id).classList.add('on');}
+/* ── 일정 저장 & 복원 (localStorage) ── */
+function saveLastSchedule(schedule, st, et) {
+  try {
+    localStorage.setItem('jeju_sched', JSON.stringify({
+      schedule,
+      meta:{ dir:S.dir, theme:S.theme, trans:S.trans, st, et, savedAt:Date.now() }
+    }));
+    updateRestoreFab();
+  } catch(e) {}
+}
+
+function loadLastSchedule() {
+  try {
+    const d = JSON.parse(localStorage.getItem('jeju_sched'));
+    // 48시간 이내 일정만 복원
+    if (d && Date.now() - d.meta.savedAt < 48*60*60*1000) return d;
+  } catch(e) {}
+  return null;
+}
+
+function restoreSchedule() {
+  const d = loadLastSchedule();
+  if (!d) return;
+  S.dir = d.meta.dir;
+  S.theme = d.meta.theme;
+  S.trans = d.meta.trans;
+  syncChips();
+  renderResult(d.schedule, d.meta.st, d.meta.et);
+}
+
+function updateRestoreFab() {
+  const fab = document.getElementById('restore-fab');
+  if (!fab) return;
+  const curScreen = document.querySelector('.screen.on')?.id;
+  const hasSaved = !!loadLastSchedule();
+  fab.classList.toggle('show', hasSaved && curScreen !== 's-result');
+}
+
+/* ── 네비게이션 ── */
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('on');
+  updateRestoreFab();
+}
 function qs(dir,theme){S.dir=dir;S.theme=theme;syncChips();go('plan');}
 
 function mkChips(id,items,role){
@@ -1059,10 +1119,15 @@ function renderResult(schedule,st,et){
     tl.appendChild(d);
   });
   document.getElementById('result-scroll').scrollTop=0;go('result');
+  saveLastSchedule(schedule, st, et);
 }
 
 function copyLink(){navigator.clipboard?.writeText(location.href).then(()=>alert('링크 복사됐어요! 카카오톡에 붙여넣기 하세요 😊')).catch(()=>prompt('링크 복사:',location.href));}
 function shareKakao(){alert('배포 후 Kakao SDK 연동하면 활성화돼요!\n지금은 링크 복사로 공유해주세요 😊');}
-</script>
+
+// 페이지 로드 시 저장된 일정 확인
+window.addEventListener('load', () => {
+  updateRestoreFab();
+});</script>
 </body>
 </html>
