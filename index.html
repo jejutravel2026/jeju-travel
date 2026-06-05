@@ -7,6 +7,7 @@
 <meta property="og:title" content="제주가이드 리라. 책임은 안짐!">
 <meta property="og:description" content="리라가 직접 다녀온 제주 식당·카페·숙소·체험 모음. 마음에 들면 저장, 아니면 패스.">
 <meta property="og:type" content="website">
+<meta property="og:image" content="https://jeju-travel-five.vercel.app/og.svg">
 <meta property="og:url" content="https://jeju-travel-five.vercel.app">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -30,8 +31,126 @@ button,input,textarea,select{font-family:'Noto Sans KR',sans-serif}
 a{text-decoration:none}
 ::-webkit-scrollbar{display:none}
 </style>
+<script>
+/* 🌺 BGM – iOS Safari 호환을 위해 별도 스크립트로 분리 */
+var BGM = (function() {
+  try {
+    var ctx=null, running=false, nodes=[], melTid=null;
+    var BPM=100, Q=60/BPM;
+    var D4=294,E4=330,G4=392,A4=440,B4=494,D5=587,E5=659;
+    var G2=98,D3=147,C3=131,E3=165;
+    var MEL=[
+      [G4,.5],[B4,.5],[D5,.5],[E5,.5],
+      [D5,.5],[B4,.5],[A4,.5],[G4,.5],
+      [A4,.5],[B4,.5],[D5,.5],[E5,.5],
+      [D5,1.0],[G4,.5],[0,.5],
+      [E5,.5],[D5,.5],[B4,.5],[G4,.5],
+      [A4,.5],[G4,.5],[E4,.5],[D4,.5],
+      [G4,.5],[A4,.5],[B4,.5],[D5,.5],
+      [G4,1.5],[0,.5]
+    ];
+    var BASS=[
+      [G2,2],[D3,2],[G2,2],[D3,2],
+      [C3,2],[D3,2],[G2,2],[D3,2]
+    ];
+    function getCtx(){
+      if(!ctx) ctx=new(window.AudioContext||window.webkitAudioContext)();
+      if(ctx.state==='suspended') ctx.resume();
+      return ctx;
+    }
+    function makeNoise(ac){
+      var len=ac.sampleRate*4;
+      var buf=ac.createBuffer(1,len,ac.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<len;i++) d[i]=Math.random()*2-1;
+      var src=ac.createBufferSource();
+      src.buffer=buf; src.loop=true;
+      return src;
+    }
+    function startWaves(){
+      var ac=getCtx();
+      var s1=makeNoise(ac), lpf=ac.createBiquadFilter(), lfo1=ac.createOscillator(), lfog1=ac.createGain(), g1=ac.createGain(), vlfo1=ac.createOscillator(), vg1=ac.createGain();
+      lpf.type='lowpass'; lpf.frequency.value=320; lpf.Q.value=0.7;
+      lfo1.type='sine'; lfo1.frequency.value=0.115; lfog1.gain.value=180;
+      lfo1.connect(lfog1); lfog1.connect(lpf.frequency);
+      g1.gain.value=0.18; vlfo1.type='sine'; vlfo1.frequency.value=0.115; vg1.gain.value=0.08;
+      vlfo1.connect(vg1); vg1.connect(g1.gain);
+      s1.connect(lpf); lpf.connect(g1); g1.connect(ac.destination);
+      s1.start(); lfo1.start(); vlfo1.start(); nodes.push(s1,lfo1,vlfo1);
+
+      var s2=makeNoise(ac), bpf=ac.createBiquadFilter(), lfo2=ac.createOscillator(), lfog2=ac.createGain(), g2=ac.createGain(), vlfo2=ac.createOscillator(), vg2=ac.createGain();
+      bpf.type='bandpass'; bpf.frequency.value=900; bpf.Q.value=0.5;
+      lfo2.type='sine'; lfo2.frequency.value=0.18; lfog2.gain.value=550;
+      lfo2.connect(lfog2); lfog2.connect(bpf.frequency);
+      g2.gain.value=0.045; vlfo2.type='sine'; vlfo2.frequency.value=0.18; vg2.gain.value=0.02;
+      vlfo2.connect(vg2); vg2.connect(g2.gain);
+      s2.connect(bpf); bpf.connect(g2); g2.connect(ac.destination);
+      s2.start(); lfo2.start(); vlfo2.start(); nodes.push(s2,lfo2,vlfo2);
+
+      var s3=makeNoise(ac), hpf=ac.createBiquadFilter(), g3=ac.createGain(), vlfo3=ac.createOscillator(), vg3=ac.createGain();
+      hpf.type='highpass'; hpf.frequency.value=3500;
+      g3.gain.value=0.015; vlfo3.type='sine'; vlfo3.frequency.value=0.22; vg3.gain.value=0.007;
+      vlfo3.connect(vg3); vg3.connect(g3.gain);
+      s3.connect(hpf); hpf.connect(g3); g3.connect(ac.destination);
+      s3.start(); vlfo3.start(); nodes.push(s3,vlfo3);
+    }
+    function pluck(freq,t,vol){
+      vol=vol||0.13;
+      if(!freq||!ctx) return;
+      var o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.value=freq;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+.002); g.gain.exponentialRampToValueAtTime(.001,t+.42);
+      o.start(t); o.stop(t+.45);
+      var o2=ctx.createOscillator(), g2=ctx.createGain();
+      o2.type='triangle'; o2.frequency.value=freq*2;
+      o2.connect(g2); g2.connect(ctx.destination);
+      g2.gain.setValueAtTime(0,t); g2.gain.linearRampToValueAtTime(vol*.28,t+.002); g2.gain.exponentialRampToValueAtTime(.001,t+.18);
+      o2.start(t); o2.stop(t+.2);
+    }
+    function scheduleMel(t0){
+      var t=t0, i;
+      for(i=0;i<MEL.length;i++){ pluck(MEL[i][0],t); t+=MEL[i][1]*Q; }
+      t=t0;
+      for(i=0;i<BASS.length;i++){
+        if(BASS[i][0]){
+          var o=ctx.createOscillator(), g=ctx.createGain();
+          o.type='triangle'; o.frequency.value=BASS[i][0];
+          o.connect(g); g.connect(ctx.destination);
+          g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.05,t+.003); g.gain.exponentialRampToValueAtTime(.001,t+BASS[i][1]*Q*.8);
+          o.start(t); o.stop(t+BASS[i][1]*Q);
+        }
+        t+=BASS[i][1]*Q;
+      }
+      var total=0; for(i=0;i<MEL.length;i++) total+=MEL[i][1]*Q;
+      return t0+total;
+    }
+    function loopMel(t0){
+      if(!running) return;
+      var end=scheduleMel(t0);
+      melTid=setTimeout(function(){loopMel(end);}, Math.max(0,(end-ctx.currentTime-.2)*1000));
+    }
+    function start(){
+      if(running) return;
+      running=true; startWaves(); loopMel(getCtx().currentTime+.3);
+    }
+    function stop(){
+      running=false; clearTimeout(melTid);
+      nodes.forEach(function(n){try{n.stop();}catch(e){}}); nodes=[];
+    }
+    return { start:start, stop:stop, toggle:function(){running?stop():start();}, on:function(){return running;} };
+  } catch(e) {
+    console.warn('BGM init error:', e);
+    return { start:function(){}, stop:function(){}, toggle:function(){}, on:function(){return false;} };
+  }
+})();
+</script>
 </head>
 <body>
+<div style="font-family:'Special Elite',Georgia,serif;font-size:11px;color:#C8A070;letter-spacing:5px;margin-top:6px">RIRA GUIDE</div>
+<div style="font-family:'Noto Sans KR',sans-serif;font-size:10px;color:#8B6840;letter-spacing:2px;margin-top:4px">리라가 추천하는 제주</div>
+<div id="splash-dots" style="color:#C8A070;font-size:18px;margin-top:18px;letter-spacing:6px">· · ·</div>
+</div>
 <div id="root"></div>
 
 <script type="text/babel">
@@ -121,315 +240,12 @@ const SFX = (() => {
   return {tick,stamp,coin,flip,err,pop};
 })();
 
-/* ══════════════════════════════════════════════════════
-   🌺  BGM – 파도 + 하와이안 우쿨렐레
-══════════════════════════════════════════════════════ */
-const BGM = (() => {
-  let ctx=null, running=false, nodes=[], melTid=null;
-  const BPM=100, Q=60/BPM, R=0;
-
-  // G 메이저 펜타토닉 — Hawaiian 멜로디
-  const D4=294,E4=330,G4=392,A4=440,B4=494,D5=587,E5=659;
-  const G2=98,D3=147,C3=131,E3=165;
-
-  /* Hawaiian 멜로디 [주파수, 박자] */
-  const MEL=[
-    [G4,.5],[B4,.5],[D5,.5],[E5,.5],   // 밝게 올라가는 인트로
-    [D5,.5],[B4,.5],[A4,.5],[G4,.5],   // 내려오는 선율
-    [A4,.5],[B4,.5],[D5,.5],[E5,.5],   // 다시 올라가고
-    [D5,1.0],[G4,.5],[R,.5],           // 여운
-    [E5,.5],[D5,.5],[B4,.5],[G4,.5],   // 부드럽게 내려와
-    [A4,.5],[G4,.5],[E4,.5],[D4,.5],   // 낮게
-    [G4,.5],[A4,.5],[B4,.5],[D5,.5],   // 올라가며 마무리
-    [G4,1.5],[R,.5],                   // 끝
-  ];
-
-  /* 베이스 코드 루트 */
-  const BASS=[
-    [G2,2],[D3,2],
-    [G2,2],[D3,2],
-    [C3,2],[D3,2],
-    [G2,2],[D3,2],
-  ];
-
-  function getCtx(){
-    if(!ctx) ctx=new(window.AudioContext||window.webkitAudioContext)();
-    if(ctx.state==='suspended') ctx.resume();
-    return ctx;
-  }
-
-  /* 백색소음 버퍼 */
-  function makeNoise(ac){
-    const len=ac.sampleRate*4;
-    const buf=ac.createBuffer(1,len,ac.sampleRate);
-    const d=buf.getChannelData(0);
-    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
-    const src=ac.createBufferSource();
-    src.buffer=buf; src.loop=true;
-    return src;
-  }
-
-  /* 파도 소리 3레이어 */
-  function startWaves(){
-    const ac=getCtx();
-    // Layer 1: 깊은 저음 파도
-    {
-      const src=makeNoise(ac);
-      const lpf=ac.createBiquadFilter(); lpf.type='lowpass'; lpf.frequency.value=320; lpf.Q.value=0.7;
-      const lfo=ac.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.115;
-      const lfog=ac.createGain(); lfog.gain.value=180;
-      lfo.connect(lfog); lfog.connect(lpf.frequency);
-      const g=ac.createGain(); g.gain.value=0.18;
-      const vlfo=ac.createOscillator(); vlfo.type='sine'; vlfo.frequency.value=0.115;
-      const vg=ac.createGain(); vg.gain.value=0.08;
-      vlfo.connect(vg); vg.connect(g.gain);
-      src.connect(lpf); lpf.connect(g); g.connect(ac.destination);
-      src.start(); lfo.start(); vlfo.start();
-      nodes.push(src,lfo,vlfo);
-    }
-    // Layer 2: 중음 포말
-    {
-      const src=makeNoise(ac);
-      const bpf=ac.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=900; bpf.Q.value=0.5;
-      const lfo=ac.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.18;
-      const lfog=ac.createGain(); lfog.gain.value=550;
-      lfo.connect(lfog); lfog.connect(bpf.frequency);
-      const g=ac.createGain(); g.gain.value=0.045;
-      const vlfo=ac.createOscillator(); vlfo.type='sine'; vlfo.frequency.value=0.18;
-      const vg=ac.createGain(); vg.gain.value=0.02;
-      vlfo.connect(vg); vg.connect(g.gain);
-      src.connect(bpf); bpf.connect(g); g.connect(ac.destination);
-      src.start(); lfo.start(); vlfo.start();
-      nodes.push(src,lfo,vlfo);
-    }
-    // Layer 3: 미세 물보라
-    {
-      const src=makeNoise(ac);
-      const hpf=ac.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=3500;
-      const g=ac.createGain(); g.gain.value=0.015;
-      const vlfo=ac.createOscillator(); vlfo.type='sine'; vlfo.frequency.value=0.22;
-      const vg=ac.createGain(); vg.gain.value=0.007;
-      vlfo.connect(vg); vg.connect(g.gain);
-      src.connect(hpf); hpf.connect(g); g.connect(ac.destination);
-      src.start(); vlfo.start();
-      nodes.push(src,vlfo);
-    }
-  }
-
-  /* 우쿨렐레 퉁기는 소리 */
-  function pluck(freq, t, vol=0.13){
-    if(!freq||!ctx) return;
-    // 기본음 (사인)
-    const o=ctx.createOscillator(), g=ctx.createGain();
-    o.type='sine'; o.frequency.value=freq;
-    o.connect(g); g.connect(ctx.destination);
-    g.gain.setValueAtTime(0,t);
-    g.gain.linearRampToValueAtTime(vol,t+.002);
-    g.gain.exponentialRampToValueAtTime(.001,t+.42);
-    o.start(t); o.stop(t+.45);
-    // 2배음 (트라이앵글, 퉁 느낌)
-    const o2=ctx.createOscillator(), g2=ctx.createGain();
-    o2.type='triangle'; o2.frequency.value=freq*2;
-    o2.connect(g2); g2.connect(ctx.destination);
-    g2.gain.setValueAtTime(0,t);
-    g2.gain.linearRampToValueAtTime(vol*.28,t+.002);
-    g2.gain.exponentialRampToValueAtTime(.001,t+.18);
-    o2.start(t); o2.stop(t+.2);
-  }
-
-  /* 멜로디 + 베이스 스케줄 */
-  function scheduleMel(t0){
-    let t=t0;
-    for(const [f,b] of MEL){ pluck(f,t); t+=b*Q; }
-    t=t0;
-    for(const [f,b] of BASS){
-      if(f){
-        const o=ctx.createOscillator(), g=ctx.createGain();
-        o.type='triangle'; o.frequency.value=f;
-        o.connect(g); g.connect(ctx.destination);
-        g.gain.setValueAtTime(0,t);
-        g.gain.linearRampToValueAtTime(.05,t+.003);
-        g.gain.exponentialRampToValueAtTime(.001,t+b*Q*.8);
-        o.start(t); o.stop(t+b*Q);
-      }
-      t+=b*Q;
-    }
-    return t0+MEL.reduce((s,[,b])=>s+b*Q,0);
-  }
-
-  function loopMel(t0){
-    if(!running) return;
-    const end=scheduleMel(t0);
-    melTid=setTimeout(()=>loopMel(end), Math.max(0,(end-ctx.currentTime-.2)*1000));
-  }
-
-  return {
-    start(){
-      if(running) return;
-      running=true;
-      startWaves();
-      loopMel(getCtx().currentTime+.3);
-    },
-    stop(){
-      running=false;
-      clearTimeout(melTid);
-      nodes.forEach(n=>{try{n.stop();}catch{}});
-      nodes=[];
-    },
-    toggle(){ running?this.stop():this.start(); },
-    on(){ return running; },
-  };
-})();
 
 /* ══════════════════════════════════════════
    ★  SEED DATA  — GitHub 저장 시 업데이트됨
 ══════════════════════════════════════════ */
 // __PLACES_DATA_START__
-const SEED_PLACES = [
-  {
-    "name": "카페치즈태비",
-    "category": "카페",
-    "desc": "구좌읍 행원리에 위치한 50년된 교회 건물을 리모델링한 유니크한 카페. 리라가 운영하는 카페. (알록달록한 재미있는 메뉴가 있다는 소문이)",
-    "link": "https://naver.me/Ixbp3dMI",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780579443816",
-    "at": 1780579443816
-  },
-  {
-    "name": "모르모라레",
-    "category": "식당",
-    "desc": "대흘리 파스타 맛집. 사장님이 음식에대한 자부심이 강함.\n문 안여는날 많음.방문전 필히 영업확인 및 예약 하기",
-    "link": "https://m.search.naver.com/search.naver?query=%EB%8B%B4%EC%9D%84%EC%86%A5&where=m&sm=mob_hty.idx&ackey=0l6zhycd&qdt=1",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780580584916",
-    "at": 1780580584916
-  },
-  {
-    "name": "자드부팡",
-    "category": "카페",
-    "desc": "아름다운 정원. 차를 타고 숲길을 들어가다 갑자기 카페가 나타나면 다들 놀랄껄?",
-    "link": "https://m.search.naver.com/search.naver?query=%EC%9E%90%EB%93%9C%EB%B6%80%ED%8C%A1&where=m&sm=mob_hty.idx&ackey=kqumjcxq&qdt=1",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780580986450",
-    "at": 1780580986450
-  },
-  {
-    "name": "촐레밥상",
-    "category": "식당",
-    "desc": "제주도 오면 각제기국은 먹어봐야제?",
-    "link": "https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&ssc=tab.m.all&oquery=%EC%9E%90%EB%93%9C%EB%B6%80%ED%8C%A1&tqi=jAbvcsqpseKssCfO65G-139426&query=%EC%B4%90%EB%A0%88%EB%B0%A5%EC%83%81&ackey=3qwtd0mh",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780581216738",
-    "at": 1780581216738
-  },
-  {
-    "name": "밧밧",
-    "category": "숙소",
-    "desc": "커플, 가족 모두 가능! 이색적이고도 제주스롭도다! 리라 최애 제주숙소 밧밧",
-    "link": "https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&ssc=tab.m.all&oquery=%EC%B4%90%EB%A0%88%EB%B0%A5%EC%83%81&tqi=jAbv5sqpseKssCfNM%2Bh-365098&query=%EB%B0%A7%EB%B0%A7&ackey=345nkvny",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780581357343",
-    "at": 1780581357343
-  },
-  {
-    "name": "비자림",
-    "category": "체험",
-    "desc": "험하지 않고 오르막이 적어서 숲을보며 걷기 좋음. 쓰레빠도 가능! 간혹 맨발족도 있다",
-    "link": "https://m.search.naver.com/search.naver?sm=mtb_hty.top&where=m&ssc=tab.m.all&oquery=%EB%B0%A7%EB%B0%A7&tqi=jAbvlsqpseKssCfNNgR-358781&query=%EB%B9%84%EC%9E%90%EB%A6%BC&ackey=zsr34k1j",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780581474618",
-    "at": 1780581474618
-  },
-  {
-    "name": "만장굴",
-    "category": "체험",
-    "desc": "제주왔는데 비오면 여기가!\n매월 셋째주 수요일 휴무니까 헛걸음하지 말고",
-    "link": "https://www.jeju.go.kr/jejuwnh/heritage/lavatube/manjanggul.htm",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780581619316",
-    "at": 1780581619316
-  },
-  {
-    "name": "가는곳세화",
-    "category": "카페",
-    "desc": "빵이 맛있다.",
-    "link": "https://www.jeju.go.kr/jejuwnh/heritage/lavatube/manjanggul.htm",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780581701811",
-    "at": 1780581701811
-  },
-  {
-    "name": "봉자네상점",
-    "category": "식당",
-    "desc": "리라 최애 돈까스 맛집!!! 노키즈존,\n매장 협소함! 진짜 맛있음",
-    "link": "https://naver.me/x8lIG3Ga",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780582209752",
-    "at": 1780582209752
-  },
-  {
-    "name": "월정리 호랑이네",
-    "category": "식당",
-    "desc": "여기 중식당 아님! 대만식 면, 밥요리.\n맛 도랐음",
-    "link": "https://월정리 호랑이네 제주 제주시 구좌읍 월정7길 61 1층 https://naver.me/GBlcCqHD",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780582399842",
-    "at": 1780582399842
-  },
-  {
-    "name": "우리두리",
-    "category": "식당",
-    "desc": "우럭튀김정식! 바가지 안당하고 우럭정식을 먹일 수 있다",
-    "link": "https://naver.me/Fslqz6hh",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780584993032",
-    "at": 1780584993032
-  },
-  {
-    "name": "세기알해변",
-    "category": "체험",
-    "desc": "제주 도민들은 여기서 논다.",
-    "link": "https://naver.me/FMc27aww",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780585393900",
-    "at": 1780585393900
-  },
-  {
-    "name": "혼인지",
-    "category": "체험",
-    "desc": "6월초에는 수국꽃 천국",
-    "link": "https://naver.me/FQyefhAf",
-    "bookingLink": "",
-    "isFeatured": false,
-    "isSponsored": false,
-    "id": "p1780623039803",
-    "at": 1780623039803
-  }
-];
+const SEED_PLACES = [];
 // __PLACES_DATA_END__
 
 const ADMIN_PW = "jeju0000";
@@ -891,6 +707,35 @@ const CSS = `
     opacity:0;pointer-events:none;transition:.2s;
   }
   .back-top.show{opacity:1;pointer-events:all}
+
+  /* ── BOARD ── */
+  .board-wrap{padding:14px 16px 100px}
+  .board-form{background:#FBF7EF;border:2px solid #C8A000;border-radius:3px;padding:18px;margin-bottom:18px;position:relative;overflow:hidden}
+  .board-form::before{content:'NEW POST';position:absolute;top:0;left:0;right:0;background:#C8A000;color:#1E1208;font-family:'Special Elite',cursive;font-size:9px;letter-spacing:3px;padding:4px;text-align:center}
+  .board-form-body{margin-top:24px}
+  .board-field{margin-bottom:10px}
+  .board-field label{font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:1.5px;color:#8B6840;display:block;margin-bottom:4px;text-transform:uppercase}
+  .board-field input,.board-field textarea{width:100%;padding:10px 12px;border:2px solid #C8A870;border-radius:2px;font-size:13px;background:#F5ECD8;color:#1E1208;outline:none;font-family:'Courier Prime',monospace;transition:.15s}
+  .board-field input:focus,.board-field textarea:focus{border-color:#8B6840;background:#FBF7EF}
+  .board-field textarea{resize:none;height:80px;line-height:1.6}
+  .board-submit{width:100%;padding:13px;background:#1E1208;color:#F5D5A0;border:2px solid #8B6840;border-radius:2px;font-family:'Special Elite',cursive;font-size:14px;letter-spacing:2px;cursor:pointer;transition:.15s;margin-top:4px}
+  .board-submit:disabled{opacity:.5;cursor:not-allowed}
+  .board-submit:active{opacity:.8}
+  .post-card{background:#FBF7EF;border:2px solid #C8A870;border-radius:3px;margin-bottom:10px;padding:14px 16px;animation:fadeUp .25s ease both;box-shadow:3px 3px 0 rgba(100,70,30,.12)}
+  .post-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#8B6840 20%,#C8A870 50%,#8B6840 80%,transparent);opacity:.4}
+  .post-card{position:relative;overflow:hidden}
+  .post-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .post-nick{font-family:'Special Elite',cursive;font-size:13px;color:#3D2B1A;letter-spacing:.5px}
+  .post-time{font-family:'Courier Prime',monospace;font-size:10px;color:#A08060;letter-spacing:.5px}
+  .post-content{font-size:13px;color:#4A3828;line-height:1.75;font-family:'Courier Prime',monospace;white-space:pre-wrap;word-break:break-all}
+  .post-del{font-size:10px;color:#C87070;background:none;border:1px solid #C87070;border-radius:2px;padding:2px 7px;cursor:pointer;font-family:'Courier Prime',monospace;margin-left:8px}
+  .post-del:active{opacity:.7}
+  .board-empty{text-align:center;padding:60px 24px;font-family:'Special Elite',cursive;color:#8B6840}
+  .board-empty-ico{font-size:36px;margin-bottom:12px}
+  .board-empty-txt{font-size:14px;letter-spacing:1px;color:#8B6840}
+  .board-empty-sub{font-size:11px;color:#A08060;margin-top:6px;font-family:'Courier Prime',monospace;line-height:1.8}
+  .board-loading{text-align:center;padding:40px;color:#A08060;font-family:'Special Elite',cursive;font-size:12px;letter-spacing:2px}
+  .board-count{font-family:'Courier Prime',monospace;font-size:11px;color:#8B6840;border:1px solid #8B6840;border-radius:2px;padding:1px 6px}
 `;
 
 /* ═══════════════════════════════════════════════
@@ -920,6 +765,10 @@ function App(){
   const [stamps, setStamps] = useState({});
   const [scroll, setScroll] = useState(0);
   const [bgmOn,  setBgmOn]  = useState(true);
+  const [posts,     setPosts]    = useState([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [boardForm, setBoardForm] = useState({nickname:'',content:''});
+  const [posting,   setPosting]  = useState(false);
   const toastRef = useRef();
 
   /* ── BGM 첫 터치 시 자동시작 ── */
@@ -935,6 +784,38 @@ function App(){
     else { BGM.start(); setBgmOn(true); }
   }
 
+  /* ── 게시판 ── */
+  async function fetchPosts(){
+    setPostsLoading(true);
+    try{
+      const r=await fetch('/api/posts');
+      if(r.ok){ const d=await r.json(); setPosts(Array.isArray(d)?d:[]); }
+    }catch(e){}
+    setPostsLoading(false);
+  }
+  async function submitPost(){
+    if(!boardForm.nickname.trim()||!boardForm.content.trim()){SFX.err();showToast('닉네임과 내용을 입력해주세요!');return;}
+    setPosting(true);
+    try{
+      const payload={...boardForm};
+      if(isAdm) payload.adminPassword=ADMIN_PW;
+      const r=await fetch('/api/posts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      const d=await r.json();
+      if(!r.ok) throw new Error(d.error||'오류');
+      SFX.coin();
+      setBoardForm({nickname:boardForm.nickname,content:''});
+      showToast('✦ 게시글이 등록됐어요!');
+      fetchPosts();
+    }catch(e){SFX.err();showToast('❌ '+e.message);}
+    setPosting(false);
+  }
+  async function deletePost(id){
+    try{
+      const r=await fetch('/api/posts',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,password:ADMIN_PW})});
+      if(r.ok){showToast('삭제됐어요');fetchPosts();}
+    }catch(e){}
+  }
+
   /* ── persist ── */
   useEffect(()=>{ localStorage.setItem('jlg_places_v2',JSON.stringify(places)); },[places]);
   useEffect(()=>{ localStorage.setItem('jlg_favs_v2',JSON.stringify([...favs])); },[favs]);
@@ -943,6 +824,7 @@ function App(){
     window.addEventListener('scroll',fn,{passive:true});
     return()=>window.removeEventListener('scroll',fn);
   },[]);
+  useEffect(()=>{ if(tab==='게시판') fetchPosts(); },[tab]);
 
   /* ── toast ── */
   function showToast(msg){
@@ -1279,12 +1161,77 @@ function App(){
                   </button>
                 );
               })}
+              <button
+                className={`cat-stamp ${tab==='게시판'?'on':''}`}
+                style={{color:tab==='게시판'?'#1A4A4A':'#8B6840'}}
+                onClick={()=>{setTab('게시판');if(view==='saved')setView('main');}}>
+                <div className="cat-stamp-label">BOARD</div>
+                <div className="cat-stamp-sub">게시판</div>
+                <div className="cat-underline" style={{background:'#1A4A4A'}}/>
+              </button>
             </div>
           )}
         </div>
 
         {/* BODY */}
         <div className="body">
+        {/* BOARD VIEW */}
+        {tab==='게시판'&&(
+          <div className="board-wrap">
+            <div className="sec-hdr" style={{marginBottom:'14px'}}>
+              <div className="sec-title">✎ 자유 게시판</div>
+              <div className="board-count">{posts.length}</div>
+            </div>
+            <div className="board-form">
+              <div className="board-form-body">
+                <div className="board-field">
+                  <label>닉네임 *</label>
+                  <input placeholder="제주여행자" maxLength={20}
+                    value={boardForm.nickname}
+                    onChange={e=>setBoardForm({...boardForm,nickname:e.target.value})}/>
+                </div>
+                <div className="board-field">
+                  <label>내용 * (최대 300자)</label>
+                  <textarea placeholder="제주에서 있었던 일, 맛집 후기, 궁금한 것 뭐든지 남겨주세요!"
+                    maxLength={300}
+                    value={boardForm.content}
+                    onChange={e=>setBoardForm({...boardForm,content:e.target.value})}/>
+                </div>
+                <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'6px'}}>
+                  <span style={{fontSize:'10px',color:'#A08060',fontFamily:'Courier Prime,monospace'}}>
+                    {boardForm.content.length}/300
+                  </span>
+                </div>
+            {postsLoading?(
+              <div className="board-loading">불러오는 중 · · ·</div>
+            ):posts.length===0?(
+              <div className="board-empty">
+                <div className="board-empty-ico">✎</div>
+                <div className="board-empty-txt">아직 글이 없어요</div>
+                <div className="board-empty-sub">제주 여행 이야기를 첫 번째로 남겨주세요!</div>
+              </div>
+            ):(
+              [...posts].sort((a,b)=>{ if(a.isAdmin&&!b.isAdmin)return -1; if(!a.isAdmin&&b.isAdmin)return 1; return new Date(b.createdAt)-new Date(a.createdAt); }).map(p=>(
+                <div className="post-card" key={p.id}>
+                  <div className="post-header">
+                    <span className="post-nick">{p.isAdmin&&<span style={{background:'#1A4A4A',color:'#C8E8C8',fontSize:'9px',letterSpacing:'1px',padding:'2px 6px',borderRadius:'2px',marginRight:'6px',fontFamily:'Courier Prime,monospace'}}>📌 운영자</span>}✦ {p.nickname}</span>
+                    <span style={{display:'flex',alignItems:'center'}}>
+                      <span className="post-time">{new Date(p.createdAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+                      {isAdm&&<button className="post-del" onClick={()=>deletePost(p.id)}>삭제</button>}
+                    </span>
+                  </div>
+                  {isAdm&&p._ip&&(
+                    <div style={{fontSize:'10px',color:'#A08060',fontFamily:'Courier Prime,monospace',marginBottom:'6px',letterSpacing:'.5px'}}>
+                      🔒 IP: {p._ip} · {(p._ua||'').slice(0,60)}
+                    </div>
+                  )}
+                  <div className="post-content">{p.content}</div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
           {/* ADMIN PANEL */}
           {isAdm&&view!=='saved'&&(
             <div className="adm-panel">
