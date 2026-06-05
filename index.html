@@ -1202,6 +1202,14 @@ function App(){
                     {boardForm.content.length}/300
                   </span>
                 </div>
+                <div style={{fontSize:'10px',color:'#A08060',fontFamily:'Courier Prime,monospace',lineHeight:'1.6',marginBottom:'8px',padding:'8px',background:'#F5ECD8',borderRadius:'2px',border:'1px solid #C8A870'}}>
+                  🔒 게시글 작성 시 IP 주소가 기록됩니다. 불법·욕설 게시물은 삭제 및 법적 조치될 수 있어요.
+                </div>
+                <button className="board-submit" onClick={submitPost} disabled={posting}>
+                  {posting?'등록 중...':'✦ 게시글 올리기'}
+                </button>
+              </div>
+            </div>
             {postsLoading?(
               <div className="board-loading">불러오는 중 · · ·</div>
             ):posts.length===0?(
