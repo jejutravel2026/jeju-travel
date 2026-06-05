@@ -17,29 +17,37 @@ module.exports = async function handler(req, res) {
   async function getPosts() {
     const r = await fetch(FILE_URL, { headers: HEADERS });
     if (r.status === 404) return { posts: [], sha: null };
+    if (!r.ok) throw new Error('파일 읽기 실패: ' + r.status);
     const data = await r.json();
-    const posts = JSON.parse(Buffer.from(data.content, 'base64').toString('utf-8'));
-    return { posts, sha: data.sha };
+    const clean = (data.content || '').replace(/\n/g, '');
+    const posts = JSON.parse(Buffer.from(clean, 'base64').toString('utf8'));
+    return { posts: Array.isArray(posts) ? posts : [], sha: data.sha };
   }
 
   async function savePosts(posts, sha) {
-    const body = {
-      message: 'Update posts',
-      content: Buffer.from(JSON.stringify(posts, null, 2)).toString('base64'),
-    };
+    const json = JSON.stringify(posts, null, 2);
+    const b64 = Buffer.from(json, 'utf8').toString('base64');
+    const body = { message: 'Update posts', content: b64 };
     if (sha) body.sha = sha;
     const r = await fetch(FILE_URL, {
       method: 'PUT',
       headers: { ...HEADERS, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-    if (!r.ok) throw new Error('저장 실패: ' + r.status);
+    if (!r.ok) {
+      const errData = await r.json().catch(() => ({}));
+      const msg = errData.message
+        || (errData.errors && errData.errors[0] && errData.errors[0].message)
+        || ('저장 실패: ' + r.status);
+      throw new Error(msg);
+    }
   }
 
   if (req.method === 'GET') {
     try {
       const { posts } = await getPosts();
-      return res.status(200).json(posts);
+      const pub = posts.map(({ _ip, _ua, ...p }) => p);
+      return res.status(200).json(pub);
     } catch (e) {
       return res.status(200).json([]);
     }
@@ -54,13 +62,11 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: '내용은 300자 이내로 입력해주세요' });
 
     const isAdmin = adminPassword === process.env.ADMIN_PASSWORD;
+    const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+            || req.socket?.remoteAddress || 'unknown';
+    const ua = (req.headers['user-agent'] || '').slice(0, 120);
 
     try {
-      const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
-              || req.socket?.remoteAddress
-              || 'unknown';
-      const ua = (req.headers['user-agent'] || '').slice(0, 120);
-
       const { posts, sha } = await getPosts();
       const newPost = {
         id: `p${Date.now()}`,
@@ -85,7 +91,6 @@ module.exports = async function handler(req, res) {
     const { id, password } = req.body || {};
     if (password !== process.env.ADMIN_PASSWORD)
       return res.status(401).json({ error: '비밀번호가 맞지 않아요' });
-
     try {
       const { posts, sha } = await getPosts();
       const updated = posts.filter(p => p.id !== id);
