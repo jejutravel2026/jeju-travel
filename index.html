@@ -285,7 +285,7 @@ const CSS = `
     position:sticky;top:0;z-index:200;
     box-shadow:0 4px 20px rgba(0,0,0,.35);
   }
-  .ticker-wrap{
+  .ticker-wrap{display:none!important;height:0!important;overflow:hidden!important;
     background:#7C1A1A;overflow:hidden;height:26px;
     display:flex;align-items:center;border-bottom:1px solid #9E2A2A;
   }
@@ -352,25 +352,33 @@ const CSS = `
   .cat-stamp.on .cat-underline{opacity:1}
 
   /* ── TOP AD BANNER ── */
+  @keyframes adScroll{
+    0%{transform:translateX(100vw)}
+    100%{transform:translateX(-100%)}
+  }
   .top-ad{
-    background:linear-gradient(135deg,#C8A000,#E8C000);
-    color:#1E1208;
-    text-align:center;
-    padding:7px 16px;
-    font-family:'Special Elite',cursive;
-    font-size:11px;letter-spacing:2px;
-    cursor:pointer;
-    position:relative;
-    border-bottom:1px solid #A88000;
-    transition:.15s;
+    background:linear-gradient(135deg,#C8A000,#D4AC00);
+    color:#1E1208;padding:0;cursor:pointer;
+    position:relative;border-bottom:2px solid #A88000;
+    overflow:hidden;height:38px;
+    display:flex;align-items:center;
   }
   .top-ad:active{opacity:.85}
   .top-ad-label{
-    display:inline-block;
+    flex-shrink:0;
     background:#1E1208;color:#C8A000;
-    font-size:8px;letter-spacing:2px;
-    padding:1px 6px;border-radius:1px;
-    margin-right:8px;vertical-align:middle;
+    font-family:'Special Elite',cursive;
+    font-size:9px;letter-spacing:2px;
+    padding:0 10px;height:100%;
+    display:flex;align-items:center;
+    z-index:2;
+  }
+  .top-ad-scroll{
+    white-space:nowrap;
+    animation:adScroll 16s linear infinite;
+    font-family:'Special Elite',cursive;
+    font-size:14px;letter-spacing:3px;
+    color:#1E1208;font-weight:bold;
   }
 
   /* ── BODY ── */
@@ -1118,7 +1126,9 @@ function App(){
           {/* TOP AD BANNER */}
           <div className="top-ad" onClick={()=>setModal('biz')}>
             <span className="top-ad-label">AD</span>
-            제주 렌트카 광고모집합니다
+            <div className="top-ad-scroll">
+              제주 렌트카 광고모집합니다 &nbsp;&nbsp;✦&nbsp;&nbsp; 제주 렌트카 광고모집합니다 &nbsp;&nbsp;✦&nbsp;&nbsp; 제주 렌트카 광고모집합니다
+            </div>
           </div>
           {/* TICKER */}
           <div className="ticker-wrap">
