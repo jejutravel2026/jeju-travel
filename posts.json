@@ -1,5 +1,13 @@
 [
   {
+    "id": "p1780926420445",
+    "nickname": "TEST",
+    "content": "이것은 API 테스트 답글",
+    "createdAt": "2026-06-08T13:47:00.445Z",
+    "_ip": "211.252.174.35",
+    "_ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36"
+  },
+  {
     "id": "p1780926327087",
     "nickname": "네스터",
     "content": "테스터1",
