@@ -30,6 +30,16 @@
     "createdAt": "2026-06-07T14:37:47.626Z",
     "isAdmin": true,
     "_ip": "211.252.174.35",
-    "_ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604"
+    "_ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604",
+    "replies": [
+      {
+        "id": "r1780927602249",
+        "nickname": "답글테스트",
+        "content": "테스트",
+        "createdAt": "2026-06-08T14:06:42.249Z",
+        "_ip": "211.252.174.35",
+        "_ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604"
+      }
+    ]
   }
 ]
