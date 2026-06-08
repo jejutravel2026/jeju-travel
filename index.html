@@ -760,6 +760,28 @@ const CSS = `
   .post-content{font-size:13px;color:#4A3828;line-height:1.75;font-family:'Courier Prime',monospace;white-space:pre-wrap;word-break:break-all}
   .post-del{font-size:10px;color:#C87070;background:none;border:1px solid #C87070;border-radius:2px;padding:2px 7px;cursor:pointer;font-family:'Courier Prime',monospace;margin-left:8px}
   .post-del:active{opacity:.7}
+
+  /* ── REPLIES ── */
+  .reply-list{margin-top:10px;border-top:1px dashed #C8A870;padding-top:8px}
+  .reply-item{padding:7px 0 7px 14px;border-left:2px solid #C8A870;margin-bottom:5px;position:relative}
+  .reply-item:last-child{margin-bottom:0}
+  .reply-header{display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap}
+  .reply-nick{font-family:'Special Elite',cursive;font-size:11px;color:#5A4030;letter-spacing:.3px}
+  .reply-admin{background:#1A4A4A;color:#C8E8C8;font-size:8px;letter-spacing:1px;padding:1px 5px;border-radius:2px;font-family:'Courier Prime',monospace}
+  .reply-time{font-family:'Courier Prime',monospace;font-size:10px;color:#A08060;margin-left:auto}
+  .reply-content{font-size:12px;color:#4A3828;line-height:1.7;font-family:'Courier Prime',monospace;white-space:pre-wrap;word-break:break-all}
+  .reply-toggle-btn{font-size:11px;color:#8B6840;border:1px solid #C8A870;background:none;border-radius:2px;padding:3px 10px;cursor:pointer;font-family:'Courier Prime',monospace;margin-top:8px;transition:.15s}
+  .reply-toggle-btn:active{opacity:.7}
+  .reply-form{margin-top:8px;padding:10px;background:#F5ECD8;border-radius:2px;border:1px dashed #C8A870}
+  .reply-form input,.reply-form textarea{width:100%;padding:7px 10px;border:1.5px solid #C8A870;border-radius:2px;font-size:12px;background:#FBF7EF;color:#1E1208;outline:none;font-family:'Courier Prime',monospace;transition:.15s;box-sizing:border-box}
+  .reply-form input:focus,.reply-form textarea:focus{border-color:#8B6840}
+  .reply-form input{margin-bottom:6px}
+  .reply-form textarea{resize:none;height:60px;line-height:1.6}
+  .reply-form-btns{display:flex;gap:6px;margin-top:6px;justify-content:flex-end}
+  .reply-cancel{padding:5px 12px;border:1.5px solid #C8A870;background:transparent;color:#8B6840;border-radius:2px;font-family:'Courier Prime',monospace;font-size:11px;cursor:pointer}
+  .reply-submit{padding:5px 14px;border:none;background:#1E1208;color:#F5D5A0;border-radius:2px;font-family:'Special Elite',cursive;font-size:11px;letter-spacing:1px;cursor:pointer;transition:.15s}
+  .reply-submit:disabled{opacity:.5;cursor:not-allowed}
+
   .board-empty{text-align:center;padding:60px 24px;font-family:'Special Elite',cursive;color:#8B6840}
   .board-empty-ico{font-size:36px;margin-bottom:12px}
   .board-empty-txt{font-size:14px;letter-spacing:1px;color:#8B6840}
@@ -804,6 +826,9 @@ function App(){
   const [posts,     setPosts]    = useState([]);
   const [postsLoading, setPostsLoading] = useState(false);
   const [boardForm, setBoardForm] = useState({nickname:'',content:''});
+  const [replyTo,     setReplyTo]    = useState(null);
+  const [replyForm,   setReplyForm]  = useState({nickname:'',content:''});
+  const [replyBusy,   setReplyBusy]  = useState(false);
   const [posting,   setPosting]  = useState(false);
   const toastRef = useRef();
 
@@ -821,6 +846,31 @@ function App(){
   }
 
   /* ── 게시판 ── */
+  async function submitReply(postId){
+    if(!replyForm.nickname.trim()||!replyForm.content.trim()){SFX.err();showToast('닉네임과 내용을 입력해주세요!');return;}
+    setReplyBusy(true);
+    try{
+      const payload={nickname:replyForm.nickname,content:replyForm.content,replyTo:postId};
+      if(isAdm) payload.adminPassword=ADMIN_PW;
+      const r=await fetch('/api/posts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      const d=await r.json();
+      if(!r.ok) throw new Error(d.error||'오류');
+      SFX.coin();
+      setReplyTo(null);
+      setReplyForm({nickname:replyForm.nickname,content:''});
+      showToast('↩ 답글이 등록됐어요!');
+      fetchPosts();
+    }catch(e){SFX.err();showToast('❌ '+e.message);}
+    setReplyBusy(false);
+  }
+  async function deleteReply(postId, replyId){
+    try{
+      const r=await fetch('/api/posts',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:postId,replyId,password:ADMIN_PW})});
+      if(r.ok){showToast('답글 삭제됐어요');fetchPosts();}
+    }catch(e){}
+  }
+
+
   async function fetchPosts(){
     setPostsLoading(true);
     try{
@@ -1277,6 +1327,47 @@ function App(){
                     </div>
                   )}
                   <div className="post-content">{p.content}</div>
+                  {/* 답글 목록 */}
+                  {p.replies&&p.replies.length>0&&(
+                    <div className="reply-list">
+                      {p.replies.map(r=>(
+                        <div className="reply-item" key={r.id}>
+                          <div className="reply-header">
+                            <span className="reply-nick">
+                              {r.isAdmin&&<span className="reply-admin">운영자</span>}
+                              {' '}↩ {r.nickname}
+                            </span>
+                            <span className="reply-time">{new Date(r.createdAt).toLocaleDateString('ko-KR',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+                            {isAdm&&<button className="post-del" onClick={()=>deleteReply(p.id,r.id)}>삭제</button>}
+                          </div>
+                          {isAdm&&r._ip&&<div style={{fontSize:'10px',color:'#A08060',fontFamily:'Courier Prime,monospace',marginBottom:'3px'}}>🔒 {r._ip}</div>}
+                          <div className="reply-content">{r.content}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* 답글 폼 or 버튼 */}
+                  {replyTo===p.id?(
+                    <div className="reply-form">
+                      <input placeholder="닉네임" maxLength={20}
+                        value={replyForm.nickname}
+                        onChange={e=>setReplyForm({...replyForm,nickname:e.target.value})}/>
+                      <textarea placeholder="답글을 입력하세요... (최대 300자)" maxLength={300}
+                        value={replyForm.content}
+                        onChange={e=>setReplyForm({...replyForm,content:e.target.value})}/>
+                      <div className="reply-form-btns">
+                        <button className="reply-cancel" onClick={()=>setReplyTo(null)}>취소</button>
+                        <button className="reply-submit" onClick={()=>submitReply(p.id)} disabled={replyBusy}>
+                          {replyBusy?'등록 중...':'↩ 답글 등록'}
+                        </button>
+                      </div>
+                    </div>
+                  ):(
+                    <button className="reply-toggle-btn"
+                      onClick={()=>{setReplyTo(p.id);setReplyForm({nickname:replyForm.nickname,content:''});}}>
+                      ↩ 답글{p.replies&&p.replies.length>0?` (${p.replies.length})`:''}
+                    </button>
+                  )}
                 </div>
               ))
             )}
